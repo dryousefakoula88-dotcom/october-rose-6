@@ -804,7 +804,7 @@ body.manager .adm-float{display:block;}
 <!-- ══════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ══════════════════════════════════════
 // SUPABASE CONFIG
 // NOTE: Must be served from a web server (not file://)
@@ -814,16 +814,32 @@ const SB_URL = 'https://hoidgsgshkhwzunqcwjd.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvaWRnc2dzaGtod3p1bnFjd2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MzI0MzksImV4cCI6MjA5MDQwODQzOX0.cBHF3nA5NeS8nqkyVM0UtMTy_-xgGRmP84iBwlUMVMI';
 const SB_PUB = 'sb_publishable_LfLxowRt1eThW_hqRYDhdQ_KNNJ3MN7';
 
+// Try both key formats for compatibility
 const SB_HEADERS = {
-  'apikey': SB_PUB,
+  'apikey': SB_KEY,
   'Authorization': `Bearer ${SB_KEY}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation',
+  'X-Supabase-Api-Version': '2024-01-01'
+};
+const SB_HEADERS2 = {
+  'apikey': SB_PUB,
+  'Authorization': `Bearer ${SB_PUB}`,
   'Content-Type': 'application/json',
   'Prefer': 'return=representation'
 };
 
+async function apiCall(url, opts={}) {
+  let r = await fetch(url, { ...opts, headers: { ...SB_HEADERS, ...(opts.headers||{}) } });
+  if ((r.status === 401 || r.status === 403) && typeof SB_HEADERS2 !== 'undefined') {
+    r = await fetch(url, { ...opts, headers: { ...SB_HEADERS2, ...(opts.headers||{}) } });
+  }
+  return r;
+}
+
 async function sbGet(table, query='') {
   const url = `${SB_URL}/rest/v1/${table}?${query}`;
-  const r = await fetch(url, { headers: SB_HEADERS });
+  const r = await apiCall(url);
   if (!r.ok) {
     const err = await r.text();
     console.error(`sbGet ${table} failed:`, r.status, err);
@@ -832,22 +848,22 @@ async function sbGet(table, query='') {
   return r.json();
 }
 async function sbPost(table, data) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
-    method: 'POST', headers: SB_HEADERS, body: JSON.stringify(data)
+  const r = await apiCall(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST', body: JSON.stringify(data)
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function sbPatch(table, id, data) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(data)
+  const r = await apiCall(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', body: JSON.stringify(data)
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function sbDelete(table, id) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'DELETE', headers: SB_HEADERS
+  const r = await apiCall(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE'
   });
   if (!r.ok) throw new Error(await r.text());
   return true;
@@ -891,70 +907,105 @@ function loadLocal(key) {
 }
 
 async function init() {
+  // ══ HIDE LOADER IMMEDIATELY — no waiting ══
   const hideLoader = () => {
     const ls = document.getElementById('loading-screen');
     if (!ls) return;
-    ls.style.transition = 'opacity 0.5s';
+    ls.style.transition = 'opacity 0.6s';
     ls.style.opacity = '0';
-    setTimeout(() => ls.style.display = 'none', 500);
+    setTimeout(() => { ls.style.display = 'none'; }, 600);
   };
 
-  // ① INSTANT: Load from localStorage cache first (works even offline)
+  // Show site instantly
+  renderCats();
+  renderProds('all');
+  hideLoader();
+
+  // Load cached data silently
   const cached = loadLocal('products');
   if (cached && cached.length > 0) {
     PRODUCTS = cached;
     document.getElementById('stat-n').textContent = PRODUCTS.length;
     renderCats();
     renderProds('all');
-    hideLoader();
-  } else {
-    // Show site with empty state while loading
-    renderCats();
-    renderProds('all');
-    setTimeout(hideLoader, 1500);
   }
-
-  // Load cached settings
   const cachedSettings = loadLocal('settings');
   if (cachedSettings) { SETTINGS = cachedSettings; applySettings(); }
 
-  // ② BACKGROUND: Sync with Supabase (needs web server, not file://)
-  const isFileProtocol = window.location.protocol === 'file:';
-  if (isFileProtocol) {
-    showDbStatus('⚠️ افتح الملف من استضافة وليس من جهازك مباشرة', true);
-    console.warn('file:// protocol blocks Supabase. Host on netlify.com/drop');
-    hideLoader();
+  // Sync with Supabase in background (non-blocking)
+  syncWithSupabase();
+}
+
+async function syncWithSupabase() {
+  if (window.location.protocol === 'file:') {
+    showDbStatus('⚠️ افتح من استضافة وليس من جهازك', true);
     return;
   }
-
   try {
-    PRODUCTS = await sbGet('products', 'order=created_at.desc');
+    // Quick timeout test
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    
+    // Try JWT key first, then publishable key
+    let res = await fetch(
+      `${SB_URL}/rest/v1/products?order=created_at.desc`,
+      { headers: SB_HEADERS, signal: controller.signal }
+    );
+    
+    // If fails with 401, try publishable key
+    if (res.status === 401 || res.status === 403) {
+      console.log('Trying publishable key...');
+      res = await fetch(
+        `${SB_URL}/rest/v1/products?order=created_at.desc`,
+        { headers: SB_HEADERS2 }
+      );
+    }
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Supabase:', res.status, err);
+      showDbStatus('خطأ في الاتصال ' + res.status + ' — راجع Supabase RLS', true);
+      return;
+    }
+
+    PRODUCTS = await res.json();
     saveLocal('products', PRODUCTS);
     document.getElementById('stat-n').textContent = PRODUCTS.length;
     renderCats();
-    renderProds('all');
+    renderProds(curFilter);
+    showDbStatus('✓ متصل بقاعدة البيانات', false);
 
+    // Settings
     try {
-      const sets = await sbGet('settings', 'limit=1');
-      if (sets && sets.length > 0) {
-        SETTINGS = sets[0];
-        saveLocal('settings', SETTINGS);
-        applySettings();
+      const sRes = await fetch(`${SB_URL}/rest/v1/settings?limit=1`, { headers: SB_HEADERS });
+      if (sRes.ok) {
+        const sets = await sRes.json();
+        if (sets && sets.length > 0) {
+          SETTINGS = sets[0];
+          saveLocal('settings', SETTINGS);
+          applySettings();
+        }
       }
     } catch(e) {}
 
+    // Order count
     try {
-      const ords = await sbGet('orders', 'select=id');
-      document.getElementById('stat-o').textContent = ords.length;
+      const oRes = await fetch(`${SB_URL}/rest/v1/orders?select=id`, { headers: SB_HEADERS });
+      if (oRes.ok) {
+        const ords = await oRes.json();
+        document.getElementById('stat-o').textContent = ords.length;
+      }
     } catch(e) {}
 
-    showDbStatus('✓ متصل بقاعدة البيانات', false);
-    hideLoader();
-
   } catch(err) {
-    console.error('Supabase sync error:', err.message);
-    showDbStatus('تعذّر الاتصال بالسيرفر', true);
-    hideLoader();
+    if (err.name === 'AbortError') {
+      console.warn('Supabase timeout');
+      showDbStatus('انتهت مهلة الاتصال — تحقق من Supabase', true);
+    } else {
+      console.error('Sync error:', err.message);
+      showDbStatus('تعذّر الاتصال بالسحابة', true);
+    }
   }
 }
 
@@ -1627,4 +1678,33 @@ document.getElementById('dash-panel').addEventListener('click', function(e) { if
 
 function togglePw(id, btn) {
   const inp = document.getElementById(id);
-  if (
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+let _tt;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function showDbStatus(msg, isErr) {
+  const el = document.getElementById('db-status');
+  const dot = document.getElementById('db-dot');
+  const msgEl = document.getElementById('db-msg');
+  if (!el) return;
+  msgEl.textContent = msg;
+  dot.className = 'db-dot' + (isErr ? ' err' : '');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ══════════════════════════════════════
+// START
+// ══════════════════════════════════════
+init();
+</script>
+</body>
+</html>
