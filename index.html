@@ -78,6 +78,12 @@ header{background:var(--dark);padding:0 24px;height:68px;display:flex;align-item
 .hero-rings i:nth-child(1){width:480px;height:480px;top:-90px;right:-60px;}
 .hero-rings i:nth-child(2){width:300px;height:300px;top:30px;right:90px;border-color:rgba(212,160,23,.1);}
 .hero-rings i:nth-child(3){width:160px;height:160px;top:110px;right:180px;background:radial-gradient(rgba(232,77,138,.06),transparent);}
+.hero-logo{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;min-height:400px;gap:20px;}
+.hero-logo img{max-width:280px;max-height:280px;object-fit:contain;filter:drop-shadow(0 15px 40px rgba(232,77,138,0.25));}
+.hero-logo svg{max-width:280px;max-height:280px;}
+.hero-logo-title{text-align:center;color:#fff;font-size:1.1rem;font-weight:700;font-family:'Tajawal',sans-serif;letter-spacing:1px;}
+.logo-title-brand{display:block;color:#fff;font-size:1.3rem;}
+.logo-title-sub{display:block;color:var(--gd);font-size:.8rem;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
 .hero-content{position:relative;z-index:1;max-width:500px;}
 .hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(232,77,138,.15);border:1px solid rgba(232,77,138,.35);color:var(--pk-light);padding:5px 15px;border-radius:30px;font-size:.77rem;letter-spacing:1.5px;margin-bottom:20px;}
 .hero h1{font-family:'Playfair Display',serif;color:#fff;font-size:clamp(1.8rem,4vw,3.2rem);line-height:1.22;margin-bottom:15px;}
@@ -245,6 +251,10 @@ body.manager .profit-box{display:block;}
 .profit-row-value{color:#7a5a0a;font-size:.9rem;font-weight:700;text-align:left;min-width:80px;}
 .profit-row-value.profit-margin{color:#27ae60;font-weight:700;}
 
+/* Hide cost input from non-managers */
+#d-cost{display:none !important;}
+body.manager #d-cost{display:block !important;}
+
 /* Tabs */
 .d-tabs-sec{border-top:2px solid var(--border2);padding:14px 20px;}
 .d-tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid var(--border2);overflow-x:auto;scrollbar-width:none;}
@@ -272,6 +282,11 @@ body.manager .profit-box{display:block;}
   .gal-main{min-height:200px;}
   .d-box{border-radius:14px;}
 }
+
+/* Edit mode gallery adjustments */
+.d-box.edit-mode .d-gallery{min-height:200px !important;}
+.d-box.edit-mode .gal-main{min-height:180px !important;}
+.d-box.edit-mode #d-photo{max-width:280px !important;max-height:180px !important;object-fit:contain !important;}
 
 /* ── ORDERS PANEL ── */
 .orders-panel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;}
@@ -541,6 +556,13 @@ body.manager .adm-float{display:block;}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-rings"><i></i><i></i><i></i></div>
+  <div class="hero-logo">
+    <img id="hero-logo-img" src="" alt="Company Logo" style="display:none;">
+    <div class="hero-logo-title">
+      <span class="logo-title-brand" id="logo-title-brand">October Rose 6</span>
+      <span class="logo-title-sub" id="logo-title-sub">Make Up & Cosmetics</span>
+    </div>
+  </div>
   <div class="hero-content">
     <div class="hero-pill">✦ جمالك يستحق الأفضل ✦</div>
     <h1>عالم <span class="c-pk">الجمال</span><br>في متناول <span class="c-gd">يديكِ</span></h1>
@@ -1186,6 +1208,26 @@ function showDbStatus(msg, isErr) {
 function applySettings() {
   if (!SETTINGS) return;
   const s = SETTINGS;
+  
+  // Apply logo to hero section if available
+  if (s.logo_url) {
+    const logoImg = document.getElementById('hero-logo-img');
+    if (logoImg) {
+      logoImg.src = s.logo_url;
+      logoImg.style.display = 'block';
+    }
+  }
+  
+  // Apply logo title from settings
+  if (s.brand_name) {
+    const titleBrand = document.getElementById('logo-title-brand');
+    if (titleBrand) titleBrand.textContent = s.brand_name;
+  }
+  if (s.brand_subtitle) {
+    const titleSub = document.getElementById('logo-title-sub');
+    if (titleSub) titleSub.textContent = s.brand_subtitle;
+  }
+  
   if (s.phone) { setContactText('cs-phone','cc-phone', s.phone, 'tel:'+s.phone); }
   if (s.whatsapp) {
     const wn = s.whatsapp.replace(/\D/g,'');
@@ -1590,7 +1632,7 @@ function openDetail(id) {
 
   // ── Profit (manager only) ──
   const costEl = document.getElementById('d-cost');
-  if (costEl) { costEl.value = p.cost_price || ''; calcProfit(); }
+  if (costEl) { costEl.value = p.cost || ''; calcProfit(); }
 
   // ── Reset tabs ──
   document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('ac'));
@@ -1819,7 +1861,7 @@ async function saveDetail() {
     price:       parseFloat(document.getElementById('d-price-edit').value),
     old_price:   parseFloat(document.getElementById('d-old-edit').value) || null,
     deposit:     depositVal,
-    cost_price:  costVal,
+    cost:        costVal,
     badge:       document.getElementById('d-badge-edit').value,
     description: document.getElementById('d-description-edit').value.trim(),
     usage:       usage,
