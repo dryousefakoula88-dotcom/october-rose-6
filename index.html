@@ -186,10 +186,9 @@ body.staff-sales .p-hbtn.del-btn,body.manager .p-hbtn.del-btn{display:flex;}
 
 /* ── STAFF-ONLY BUTTONS ── */
 .staff-only{display:none;}
-body.staff-sales .staff-only,body.manager .staff-only{display:inline-flex;}
+body.staff-sales .staff-only,body.manager .staff-only,body.asst-manager .staff-only{display:inline-flex;}
 
-
-/* ══ DETAIL OVERLAY — CLEAN FINAL ══ */
+/* ══ PRODUCT DETAIL OVERLAY — CLEAN FINAL ══ */
 .d-ov{display:none;position:fixed;inset:0;background:rgba(10,4,7,.88);z-index:2000;align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;}
 .d-ov.open{display:flex;}
 .d-box{background:#fff;border-radius:20px;width:100%;max-width:960px;margin:auto;box-shadow:0 40px 100px rgba(0,0,0,.6);animation:popIn .3s ease;overflow:hidden;}
@@ -261,24 +260,64 @@ body.staff-sales .gal-add-btn,body.manager .gal-add-btn{display:flex;}
 /* Hide admin controls completely from regular customers (non-authenticated users) */
 body:not(.manager):not(.staff-orders):not(.staff-sales) .d-admin-controls{display:none !important;visibility:hidden !important;pointer-events:none !important;}
 
-/* Profit — manager only */
+/* Profit — manager only (hidden from asst-manager) */
 .profit-box{display:none;background:linear-gradient(135deg,#fff9e6,#fff5cc);border-radius:14px;padding:16px;border:2px solid #d4a017;margin-top:12px;}
 body.manager .profit-box{display:block;}
-.pb-title{color:#6b5400;font-size:.78rem;font-weight:700;margin-bottom:12px;letter-spacing:1px;display:none;}
-.profit-input-section{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-.profit-input-section label{color:#8b6f00;font-size:.78rem;font-weight:600;white-space:nowrap;}
-.profit-input-section input{flex:1;background:#fff;border:1px solid #d4a017;border-radius:8px;padding:6px 10px;color:#333;font-size:.82rem;outline:none;font-family:"Tajawal",sans-serif;max-width:150px;}
-.profit-input-section .profit-unit{color:#8b6f00;font-size:.75rem;font-weight:600;}
-.profit-display{border-top:1px solid rgba(212,160,23,.3);padding-top:12px;}
-.profit-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(212,160,23,.2);}
-.profit-row:last-child{border-bottom:none;}
-.profit-row-label{color:#8b6f00;font-size:.85rem;font-weight:600;flex:1;}
-.profit-row-value{color:#7a5a0a;font-size:.9rem;font-weight:700;text-align:left;min-width:80px;}
-.profit-row-value.profit-margin{color:#27ae60;font-weight:700;}
 
-/* Hide cost input from non-managers */
+/* Hide cost from non-managers */
 #d-cost{display:none !important;}
 body.manager #d-cost{display:block !important;}
+
+/* Admin float — manager + asst-manager */
+body.asst-manager .adm-float{display:block;}
+
+/* del-btn — manager + asst-manager + sales */
+body.asst-manager .p-hbtn.del-btn{display:flex;}
+
+/* Admin controls visibility */
+body:not(.manager):not(.staff-orders):not(.staff-sales):not(.asst-manager) .d-admin-controls{display:none !important;visibility:hidden !important;pointer-events:none !important;}
+
+/* Customer portal styles */
+.cust-panel{position:fixed;inset:0;background:rgba(10,4,7,.92);z-index:6000;display:none;align-items:flex-start;justify-content:center;padding:14px;overflow-y:auto;}
+.cust-panel.open{display:flex;}
+.cust-box{background:var(--cream);border-radius:20px;width:100%;max-width:680px;margin:auto;box-shadow:0 40px 100px rgba(0,0,0,.6);animation:popIn .3s ease;overflow:hidden;}
+.cust-head{background:var(--dark);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+.cust-head h3{color:var(--gd);font-size:1.1rem;font-weight:700;}
+.cust-body{padding:20px;}
+.cust-order-card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:12px;border:1.5px solid var(--border);box-shadow:var(--shadow);}
+.cust-order-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;}
+.cust-order-id{font-weight:700;font-size:.85rem;color:var(--muted);}
+.cust-order-total{font-weight:700;color:var(--pk);font-size:.95rem;}
+.cust-order-items{font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:8px;}
+.cust-order-timeline{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;}
+.tl-step{padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;background:var(--border);color:var(--muted);}
+.tl-step.done{background:var(--pk);color:#fff;}
+.tl-step.active{background:var(--gd);color:var(--dark);}
+
+/* Order status colors enhanced */
+.status-new{background:#fff3cd;color:#856404;}
+.status-processing{background:#cce5ff;color:#004085;}
+.status-ready{background:#d4edda;color:#155724;}
+.status-shipped{background:#e2d9f3;color:#4a0080;}
+.status-done{background:#d4edda;color:#155724;}
+.status-cancelled{background:#f8d7da;color:#721c24;}
+.status-reserved{background:#fff3cd;color:#856404;}
+
+/* Orders enhanced */
+.ord-timeline{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap;}
+.ord-tl-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.ord-tl-dot.active{background:var(--gd);}
+.ord-tl-dot.done{background:var(--success);}
+.order-row{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1.5px solid var(--border);box-shadow:var(--shadow);}
+.order-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.order-id{font-weight:700;font-size:.8rem;color:var(--muted);}
+.order-date{font-size:.75rem;color:var(--muted);}
+.order-total{font-weight:700;color:var(--pk);font-size:.88rem;}
+.order-status{border:1.5px solid var(--border);border-radius:16px;padding:3px 10px;font-size:.75rem;font-weight:700;cursor:pointer;outline:none;font-family:'Tajawal',sans-serif;}
+.order-items{font-size:.8rem;color:var(--muted);margin-bottom:4px;}
+.order-contact{font-size:.78rem;color:var(--muted);}
+.manager-del-order{background:var(--danger);color:#fff;border:none;border-radius:16px;padding:3px 10px;font-size:.72rem;cursor:pointer;transition:.2s;}
+.manager-del-order:hover{background:#c0392b;}
 
 /* Tabs */
 .d-tabs-sec{border-top:2px solid var(--border2);padding:14px 20px;}
@@ -539,6 +578,10 @@ body.manager .adm-float{display:block;}
     <button onclick="doSearch()">🔍</button>
   </div>
   <div class="hdr-acts">
+    <button class="hdr-btn" id="cust-btn" onclick="openCustPortal()" title="حسابي">
+      <span class="ico">🌸</span>
+      <span><span class="sub-lbl" id="cust-btn-lbl">حسابي</span></span>
+    </button>
     <button class="hdr-btn" id="role-btn" onclick="openLoginModal()" style="display:none">
       <span class="ico" id="role-ico">👤</span>
       <span><span class="sub-lbl" id="role-lbl">—</span></span>
@@ -581,31 +624,26 @@ body.manager .adm-float{display:block;}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-rings"><i></i><i></i><i></i></div>
-
-  <!-- LOGO SCENE — يمين -->
   <div class="hero-logo">
     <div class="logo-ring-1"></div>
     <div class="logo-ring-2"></div>
     <div class="logo-glow"></div>
     <div class="logo-orbit">
-      <span>💄</span><span>✨</span><span>🌸</span>
-      <span>💋</span><span>🧴</span><span>💅</span>
+      <span>🌸</span><span>💄</span><span>✨</span><span>💅</span><span>🌿</span><span>💛</span>
     </div>
-    <div class="logo-spark"></div>
-    <div class="logo-spark"></div>
-    <div class="logo-spark"></div>
-    <div class="logo-spark"></div>
     <div class="logo-circle-img">
-      <img id="hero-logo-img" src="" alt="Logo" style="display:none;">
-      <div id="hero-logo-placeholder" class="logo-ph">🌸</div>
+      <img id="hero-logo-img" src="" alt="October Rose 6" style="display:none">
+      <div class="logo-ph" id="hero-logo-placeholder">🌹</div>
     </div>
+    <div class="logo-spark"></div>
+    <div class="logo-spark"></div>
+    <div class="logo-spark"></div>
+    <div class="logo-spark"></div>
     <div class="hero-logo-title">
       <span class="logo-title-brand" id="logo-title-brand">October Rose 6</span>
       <span class="logo-title-sub" id="logo-title-sub">Make Up & Cosmetics</span>
     </div>
   </div>
-
-  <!-- محتوى — يسار -->
   <div class="hero-content">
     <div class="hero-pill">✦ جمالك يستحق الأفضل ✦</div>
     <h1>عالم <span class="c-pk">الجمال</span><br>في متناول <span class="c-gd">يديكِ</span></h1>
@@ -929,6 +967,13 @@ body.manager .adm-float{display:block;}
         </div>
         <div id="staff-list"></div>
       </div>
+      <!-- Customers list — manager only -->
+      <div id="cust-mgmt" style="display:none;margin-top:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h4 style="font-weight:700">🌸 العملاء المسجّلون</h4>
+        </div>
+        <div id="cust-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1068,13 +1113,63 @@ body.manager .adm-float{display:block;}
     </div>
     <div class="f-row"><label>الصلاحيات</label>
       <select id="st-role">
-        <option value="orders">موظف طلبات (يشوف الطلبات فقط)</option>
-        <option value="sales">موظف مبيعات (يضيف ويعدل منتجات)</option>
+        <option value="orders">موظف طلبات — يشوف ويتابع الطلبات فقط</option>
+        <option value="sales">موظف مبيعات — يضيف ويعدل منتجات</option>
+        <option value="asst_manager">مدير مساعد — كل الصلاحيات بدون سعر الشراء والإيرادات</option>
       </select>
     </div>
     <div class="m-btns">
       <button class="m-cancel" onclick="closeMod('add-staff-modal')">إلغاء</button>
-      <button class="m-save" onclick="saveNewStaff()">إضافة الموظف ✦</button>
+      <button class="m-save" onclick="saveNewStaff()">إضافة ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER PORTAL -->
+<div class="cust-panel" id="cust-panel">
+  <div class="cust-box">
+    <div class="cust-head">
+      <h3 id="cust-head-title">👤 حسابي</h3>
+      <button style="background:none;border:none;color:var(--gd);font-size:1.3rem" onclick="closeCustPanel()">✕</button>
+    </div>
+    <div class="cust-body" id="cust-body">
+      <!-- login / orders shown here -->
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER LOGIN MODAL -->
+<div class="m-ov" id="cust-login-modal">
+  <div class="m-box" style="max-width:400px;text-align:center">
+    <div style="font-size:2.5rem;margin-bottom:8px">🌸</div>
+    <h3 style="text-align:center">حسابك في October Rose 6</h3>
+    <div id="cust-login-tabs" style="display:flex;gap:8px;justify-content:center;margin:16px 0">
+      <button class="s-tab ac" id="cust-tab-login" onclick="swCustTab('login')">تسجيل الدخول</button>
+      <button class="s-tab" id="cust-tab-reg" onclick="swCustTab('reg')">حساب جديد</button>
+    </div>
+    <!-- Login -->
+    <div id="cust-login-form">
+      <div class="f-row" style="text-align:right"><label>البريد الإلكتروني</label><input id="cl-email" type="email" placeholder="example@email.com"></div>
+      <div class="f-row" style="text-align:right"><label>كلمة المرور</label>
+        <div class="pw-wrap"><input type="password" id="cl-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doCustLogin()"><button class="pw-eye" onclick="togglePw('cl-pass',this)">👁</button></div>
+      </div>
+      <div class="m-btns" style="justify-content:center">
+        <button class="m-cancel" onclick="closeMod('cust-login-modal')">إلغاء</button>
+        <button class="m-save" onclick="doCustLogin()">دخول 🌸</button>
+      </div>
+    </div>
+    <!-- Register -->
+    <div id="cust-reg-form" style="display:none">
+      <div class="f-row" style="text-align:right"><label>الاسم *</label><input id="cr-name" placeholder="اسمك الكريم"></div>
+      <div class="f-row" style="text-align:right"><label>البريد الإلكتروني *</label><input id="cr-email" type="email" placeholder="example@email.com"></div>
+      <div class="f-row" style="text-align:right"><label>رقم الهاتف</label><input id="cr-phone" type="tel" placeholder="+20 1xx xxx xxxx"></div>
+      <div class="f-row" style="text-align:right"><label>كلمة المرور *</label>
+        <div class="pw-wrap"><input type="password" id="cr-pass" placeholder="••••••••"><button class="pw-eye" onclick="togglePw('cr-pass',this)">👁</button></div>
+      </div>
+      <div class="m-btns" style="justify-content:center">
+        <button class="m-cancel" onclick="closeMod('cust-login-modal')">إلغاء</button>
+        <button class="m-save" onclick="doCustRegister()">إنشاء حساب 🌸</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1251,58 +1346,36 @@ function showDbStatus(msg, isErr) {
 function applySettings() {
   if (!SETTINGS) return;
   const s = SETTINGS;
-
-  // ══ اللوجو — يتحمل في كل الأماكن ══
+  
+  // Apply logo to hero section if available
   if (s.logo_url) {
-    // header
-    const hdrLogo = document.getElementById('logo-img');
-    if (hdrLogo) hdrLogo.src = s.logo_url;
-    // loading screen
-    const lsLogo = document.getElementById('ls-logo');
-    if (lsLogo) lsLogo.src = s.logo_url;
-    // hero
-    const heroImg = document.getElementById('hero-logo-img');
+    const logoImg = document.getElementById('hero-logo-img');
     const heroPh  = document.getElementById('hero-logo-placeholder');
-    if (heroImg) { heroImg.src = s.logo_url; heroImg.style.display = 'block'; }
+    if (logoImg) { logoImg.src = s.logo_url; logoImg.style.display = 'block'; }
     if (heroPh)  heroPh.style.display = 'none';
   }
-
-  // ══ اسم المتجر ══
+  
+  // Apply logo title from settings
   if (s.brand_name) {
-    const brandEl = document.querySelector('.brand-name');
-    if (brandEl) brandEl.textContent = s.brand_name;
-    document.title = s.brand_name + ' – Make Up & Cosmetics';
-    const tb = document.getElementById('logo-title-brand');
-    if (tb) tb.textContent = s.brand_name;
-    // footer
-    const footBrand = document.querySelector('footer span');
-    if (footBrand) footBrand.textContent = s.brand_name;
+    const titleBrand = document.getElementById('logo-title-brand');
+    if (titleBrand) titleBrand.textContent = s.brand_name;
   }
   if (s.brand_subtitle) {
-    const ts = document.getElementById('logo-title-sub');
-    if (ts) ts.textContent = s.brand_subtitle;
-    const brandSub = document.querySelector('.brand-sub');
-    if (brandSub) brandSub.textContent = s.brand_subtitle;
+    const titleSub = document.getElementById('logo-title-sub');
+    if (titleSub) titleSub.textContent = s.brand_subtitle;
   }
-
-  // ══ بيانات التواصل ══
-  if (s.phone) {
-    setContactText('cs-phone','cc-phone', s.phone, 'tel:'+s.phone.replace(/\s/g,''));
-  }
+  
+  if (s.phone) { setContactText('cs-phone','cc-phone', s.phone, 'tel:'+s.phone); }
   if (s.whatsapp) {
     const wn = s.whatsapp.replace(/\D/g,'');
-    ['cs-wa','cc-wa'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.textContent = (id==='cs-wa'?'واتساب: ':'')+s.whatsapp; el.href='https://wa.me/'+wn; }
-    });
+    document.getElementById('cs-wa').textContent = 'واتساب: ' + s.whatsapp;
+    document.getElementById('cs-wa').href = 'https://wa.me/'+wn;
+    document.getElementById('cc-wa').textContent = s.whatsapp;
+    document.getElementById('cc-wa').href = 'https://wa.me/'+wn;
   }
-  if (s.email) {
-    setContactText('cs-email','cc-email', s.email, 'mailto:'+s.email);
-  }
-  if (s.address) {
-    const addrEl = document.getElementById('cc-addr');
-    if (addrEl) addrEl.textContent = s.address;
-  }
+  if (s.email) { setContactText('cs-email','cc-email', s.email, 'mailto:'+s.email); }
+  if (s.address) document.getElementById('cc-addr').textContent = s.address;
+  if (s.brand_name) { document.querySelector('.brand-name').textContent = s.brand_name; document.title = s.brand_name + ' – Make Up & Cosmetics'; }
 }
 function setContactText(id1,id2,txt,href) {
   [id1,id2].forEach(id => { const el=document.getElementById(id); if(el){el.textContent=txt;el.href=href;} });
@@ -1350,25 +1423,23 @@ async function doLogin() {
 
 function setUser(user) {
   currentUser = user;
-  // Remove old role classes
-  document.body.classList.remove('manager','staff-orders','staff-sales');
-  if (user.role === 'manager') document.body.classList.add('manager');
-  else if (user.role === 'orders') document.body.classList.add('staff-orders');
-  else if (user.role === 'sales') document.body.classList.add('staff-sales');
+  document.body.classList.remove('manager','staff-orders','staff-sales','asst-manager');
+  if (user.role === 'manager')       document.body.classList.add('manager');
+  else if (user.role === 'orders')   document.body.classList.add('staff-orders');
+  else if (user.role === 'sales')    document.body.classList.add('staff-sales');
+  else if (user.role === 'asst_manager') document.body.classList.add('asst-manager');
 
-  // Update header
   const roleBtn = document.getElementById('role-btn');
   roleBtn.style.display = 'flex';
-  document.getElementById('role-ico').textContent = user.role === 'manager' ? '👑' : user.role === 'orders' ? '📋' : '🛒';
+  const icons = { manager:'👑', orders:'📋', sales:'🛒', asst_manager:'⭐' };
+  document.getElementById('role-ico').textContent = icons[user.role] || '👤';
   document.getElementById('role-lbl').textContent = user.name || user.username;
 
-  // Show relevant buttons
-  const canSeeOrders = ['manager','orders','sales'].includes(user.role);
+  const canSeeOrders = ['manager','orders','sales','asst_manager'].includes(user.role);
   document.getElementById('orders-btn').style.display = canSeeOrders ? 'flex' : 'none';
-  // Show/hide edit toggle on detail panel based on role
-  const canEdit = ['manager','sales'].includes(user.role);
+  const canEdit = ['manager','sales','asst_manager'].includes(user.role);
   window._canEdit = canEdit;
-  document.getElementById('dash-btn').style.display = user.role === 'manager' ? 'flex' : 'none';
+  document.getElementById('dash-btn').style.display = ['manager','asst_manager'].includes(user.role) ? 'flex' : 'none';
 
   renderProds(curFilter);
 }
@@ -1376,7 +1447,7 @@ function setUser(user) {
 function logout() {
   currentUser = null;
   window._canEdit = false;
-  document.body.classList.remove('manager','staff-orders','staff-sales');
+  document.body.classList.remove('manager','staff-orders','staff-sales','asst-manager');
   document.getElementById('role-btn').style.display = 'none';
   document.getElementById('orders-btn').style.display = 'none';
   document.getElementById('dash-btn').style.display = 'none';
@@ -2037,27 +2108,34 @@ function renderCart() {
 }
 
 async function checkout() {
-  const name = document.getElementById('buyer-name').value.trim();
-  const phone = document.getElementById('buyer-phone').value.trim();
+  // Pre-fill from customer account if logged in
+  const nameEl  = document.getElementById('buyer-name');
+  const phoneEl = document.getElementById('buyer-phone');
+  if (currentCustomer) {
+    if (!nameEl.value)  nameEl.value  = currentCustomer.name  || '';
+    if (!phoneEl.value) phoneEl.value = currentCustomer.phone || '';
+  }
+  const name  = nameEl.value.trim();
+  const phone = phoneEl.value.trim();
   if (!name || !phone) { toast('⚠️ أدخل الاسم والهاتف'); return; }
 
-  const items = cart.map(i => ({ product_id: i.id, product_name: i.name, qty: i.qty, price: i.price }));
+  const items = cart.map(i => ({ product_id:i.id, product_name:i.name, qty:i.qty, price:i.price }));
   const total = cart.reduce((s,i) => s + i.price*i.qty, 0);
 
   try {
-    // Save order to DB
     await sbPost('orders', {
       buyer_name: name, buyer_phone: phone,
       buyer_address: document.getElementById('buyer-address').value.trim(),
-      items: items, total, status: 'new'
+      customer_email: currentCustomer ? currentCustomer.email : null,
+      items, total, status: 'new'
     });
     document.getElementById('stat-o').textContent = parseInt(document.getElementById('stat-o').textContent||0) + 1;
   } catch(e) { console.error('Order save error:', e); }
 
-  // Send via WhatsApp
   const waNum = (SETTINGS.whatsapp || '201000000000').replace(/\D/g,'');
-  const lines = cart.map(i => `• ${i.name} ×${i.qty} = ${i.price*i.qty} ج.م`).join('\n');
-  const msg = `🌸 طلب جديد – October Rose 6\n👤 ${name}\n📞 ${phone}\n\n${lines}\n\n💰 الإجمالي: ${total} ج.م`;
+  const lines = cart.map(i=>`• ${i.name} ×${i.qty} = ${i.price*i.qty} ج.م`).join('\n');
+  const custTag = currentCustomer ? `\n📧 ${currentCustomer.email}` : '';
+  const msg = `🌸 طلب جديد – October Rose 6\n👤 ${name}\n📞 ${phone}${custTag}\n\n${lines}\n\n💰 الإجمالي: ${total} ج.م`;
   window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
 
   cart = []; updBdg();
@@ -2067,8 +2145,22 @@ async function checkout() {
 }
 
 // ══════════════════════════════════════
-// ORDERS
+// ORDERS — Enhanced
 // ══════════════════════════════════════
+const ORDER_STATUSES = [
+  {v:'new',       l:'جديد 🆕',           cls:'status-new'},
+  {v:'processing',l:'قيد التجهيز ⚙️',    cls:'status-processing'},
+  {v:'ready',     l:'جاهز للشحن 📦',     cls:'status-ready'},
+  {v:'shipped',   l:'تم الشحن 🚚',       cls:'status-shipped'},
+  {v:'done',      l:'تم التسليم ✅',      cls:'status-done'},
+  {v:'cancelled', l:'ملغي ❌',            cls:'status-cancelled'},
+  {v:'reserved',  l:'محجوز بعربون 🔒',   cls:'status-reserved'},
+];
+const TL_ORDER = ['new','processing','ready','shipped','done'];
+
+function statusLabel(v){ return (ORDER_STATUSES.find(s=>s.v===v)||{l:v}).l; }
+function statusCls(v)  { return (ORDER_STATUSES.find(s=>s.v===v)||{cls:''}).cls; }
+
 async function openOrders() {
   if (!currentUser) return;
   document.getElementById('orders-panel').classList.add('open');
@@ -2077,47 +2169,70 @@ async function openOrders() {
   body.innerHTML = '<div class="no-orders"><div style="font-size:3rem">⏳</div><p>جارٍ تحميل الطلبات...</p></div>';
   try {
     ORDERS = await sbGet('orders', 'order=created_at.desc');
-    if (!ORDERS.length) { body.innerHTML = '<div class="no-orders"><div style="font-size:3rem">📋</div><p>لا توجد طلبات حتى الآن</p></div>'; return; }
-    const canDel = currentUser.role === 'manager';
-    body.innerHTML = ORDERS.map(o => {
-      const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items || '[]');
-      const itemsHtml = items.map(i => `${i.product_name} ×${i.qty}`).join(' · ');
-      const d = new Date(o.created_at);
-      const dateStr = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}`;
-      return `<div class="order-row" id="ord-${o.id}">
-        <div class="order-meta">
-          <span class="order-id">#${o.id}</span>
-          <span class="order-date">🕐 ${dateStr}</span>
-          <span class="order-total">${o.total} ج.م</span>
-          <select class="order-status status-${o.status}" onchange="updateOrderStatus(${o.id},this.value,this)">
-            <option value="new" ${o.status==='new'?'selected':''}>جديد 🆕</option>
-            <option value="reserved" ${o.status==='reserved'?'selected':''}>محجوز 🔒</option>
-            <option value="processing" ${o.status==='processing'?'selected':''}>قيد التنفيذ ⚙️</option>
-            <option value="done" ${o.status==='done'?'selected':''}>تم التسليم ✅</option>
-            <option value="cancelled" ${o.status==='cancelled'?'selected':''}>ملغي ❌</option>
-          </select>
-          ${canDel ? `<button class="manager-del-order" onclick="delOrder(${o.id})">🗑 حذف</button>` : ''}
-        </div>
-        <div class="order-items">🛍 ${itemsHtml}</div>
-        <div class="order-contact">👤 ${o.buyer_name || '—'} | 📞 ${o.buyer_phone || '—'}${o.buyer_address ? ' | 📝 '+o.buyer_address : ''}${o.deposit ? ' | 🔒 عربون: '+o.deposit+' ج.م' : ''}</div>
-      </div>`;
-    }).join('');
+    renderOrdersBody(body);
   } catch(e) { body.innerHTML = '<div class="no-orders"><p>⚠️ خطأ في تحميل الطلبات</p></div>'; console.error(e); }
+}
+
+function renderOrdersBody(body, filterStatus='') {
+  if (!body) body = document.getElementById('orders-body');
+  if (!ORDERS.length) { body.innerHTML = '<div class="no-orders"><div style="font-size:3rem">📋</div><p>لا توجد طلبات حتى الآن</p></div>'; return; }
+  const canDel = currentUser?.role === 'manager';
+  const canHideRevenue = currentUser?.role === 'asst_manager';
+  let list = filterStatus ? ORDERS.filter(o=>o.status===filterStatus) : ORDERS;
+
+  // Filter bar
+  const counts = {};
+  ORDER_STATUSES.forEach(s => counts[s.v] = ORDERS.filter(o=>o.status===s.v).length);
+  const filterBar = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+    <button onclick="renderOrdersBody(null,'')" class="ftab${!filterStatus?' ac':''}" style="font-size:.75rem">الكل (${ORDERS.length})</button>
+    ${ORDER_STATUSES.map(s=>counts[s.v]?`<button onclick="renderOrdersBody(null,'${s.v}')" class="ftab${filterStatus===s.v?' ac':''}" style="font-size:.75rem">${s.l} (${counts[s.v]})</button>`:'').join('')}
+  </div>`;
+
+  const rows = list.map(o => {
+    const items = Array.isArray(o.items) ? o.items : (()=>{try{return JSON.parse(o.items||'[]')}catch{return[]}})();
+    const itemsHtml = items.map(i => `${i.product_name} ×${i.qty}`).join(' · ');
+    const d = new Date(o.created_at);
+    const dateStr = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}`;
+    // Timeline dots
+    const tlHtml = TL_ORDER.map((s,i) => {
+      const idx = TL_ORDER.indexOf(o.status);
+      const cls = i < idx ? 'done' : i === idx ? 'active' : '';
+      return `<div class="ord-tl-dot ${cls}" title="${statusLabel(s)}"></div>`;
+    }).join('<div style="flex:1;height:2px;background:var(--border);margin:auto 2px"></div>');
+    const statusOpts = ORDER_STATUSES.map(s=>`<option value="${s.v}" ${o.status===s.v?'selected':''}>${s.l}</option>`).join('');
+    const custInfo = o.customer_email ? `<span style="color:var(--pk);font-size:.72rem">📧 ${o.customer_email}</span>` : '';
+    return `<div class="order-row" id="ord-${o.id}">
+      <div class="order-meta">
+        <span class="order-id">#${o.id}</span>
+        <span class="order-date">🕐 ${dateStr}</span>
+        ${!canHideRevenue ? `<span class="order-total">${o.total} ج.م</span>` : ''}
+        <select class="order-status ${statusCls(o.status)}" onchange="updateOrderStatus(${o.id},this.value,this)">${statusOpts}</select>
+        ${canDel ? `<button class="manager-del-order" onclick="delOrder(${o.id})">🗑</button>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin:6px 0">${tlHtml}</div>
+      <div class="order-items">🛍 ${itemsHtml}${o.deposit?` | 🔒 عربون: ${o.deposit} ج.م`:''}</div>
+      <div class="order-contact">👤 ${o.buyer_name||'—'} | 📞 ${o.buyer_phone||'—'}${o.buyer_address?' | 📍 '+o.buyer_address:''} ${custInfo}</div>
+    </div>`;
+  }).join('');
+  body.innerHTML = filterBar + (rows || '<div class="no-orders"><p>لا توجد طلبات بهذا الفلتر</p></div>');
 }
 function closeOrders() { document.getElementById('orders-panel').classList.remove('open'); document.body.style.overflow = ''; }
 
 async function updateOrderStatus(id, status, sel) {
   try {
     await sbPatch('orders', id, { status });
-    sel.className = `order-status status-${status}`;
+    sel.className = `order-status ${statusCls(status)}`;
+    // Update local ORDERS array
+    const o = ORDERS.find(x=>x.id===id); if(o) o.status=status;
     toast('✦ تم تحديث حالة الطلب');
   } catch(e) { toast('⚠️ خطأ في التحديث'); }
 }
 async function delOrder(id) {
-  if (currentUser?.role !== 'manager') return;
+  if (!['manager'].includes(currentUser?.role)) return;
   if (!confirm('حذف هذا الطلب نهائياً؟')) return;
   try {
     await sbDelete('orders', id);
+    ORDERS = ORDERS.filter(o=>o.id!==id);
     document.getElementById(`ord-${id}`)?.remove();
     toast('تم حذف الطلب');
   } catch(e) { toast('⚠️ خطأ في الحذف'); }
@@ -2127,20 +2242,37 @@ async function delOrder(id) {
 // DASHBOARD
 // ══════════════════════════════════════
 async function openDash() {
-  if (currentUser?.role !== 'manager') return;
+  const role = currentUser?.role;
+  if (!['manager','asst_manager'].includes(role)) return;
   document.getElementById('dash-panel').classList.add('open');
   document.body.style.overflow = 'hidden';
+  const isManager = role === 'manager';
   try {
     const orders = await sbGet('orders', 'select=id,total,status');
-    const revenue = orders.filter(o => o.status === 'done').reduce((s,o) => s + (o.total||0), 0);
     const newOrds = orders.filter(o => o.status === 'new').length;
-    document.getElementById('dash-stats').innerHTML = `
+    const processing = orders.filter(o => o.status === 'processing').length;
+    let statsHtml = `
       <div class="stat-card"><div class="s-num">${PRODUCTS.length}</div><div class="s-lbl">منتج</div></div>
       <div class="stat-card"><div class="s-num">${orders.length}</div><div class="s-lbl">إجمالي الطلبات</div></div>
       <div class="stat-card"><div class="s-num">${newOrds}</div><div class="s-lbl">طلبات جديدة</div></div>
-      <div class="stat-card"><div class="s-num" style="font-size:1.4rem">${revenue} ج.م</div><div class="s-lbl">إيرادات منجزة</div></div>`;
-    // Load staff
-    document.getElementById('staff-mgmt').style.display = 'block';
+      <div class="stat-card"><div class="s-num">${processing}</div><div class="s-lbl">قيد التجهيز</div></div>`;
+    if (isManager) {
+      const revenue = orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.total||0),0);
+      statsHtml += `<div class="stat-card"><div class="s-num" style="font-size:1.4rem">${revenue} ج.م</div><div class="s-lbl">إيرادات منجزة</div></div>`;
+    }
+    document.getElementById('dash-stats').innerHTML = statsHtml;
+
+    // Staff mgmt — manager only adds staff, asst_manager just views
+    const staffMgmt = document.getElementById('staff-mgmt');
+    staffMgmt.style.display = 'block';
+    const addBtn = staffMgmt.querySelector('button');
+    if (addBtn) addBtn.style.display = isManager ? 'block' : 'none';
+
+    // Customers list — manager only
+    const custMgmt = document.getElementById('cust-mgmt');
+    if (custMgmt) custMgmt.style.display = isManager ? 'block' : 'none';
+    if (isManager) loadCustomersList();
+
     const staffList = await sbGet('staff', 'order=created_at.desc');
     STAFF = staffList;
     renderStaffList();
@@ -2151,8 +2283,9 @@ function closeDash() { document.getElementById('dash-panel').classList.remove('o
 function renderStaffList() {
   const el = document.getElementById('staff-list');
   if (!STAFF.length) { el.innerHTML = '<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px">لا يوجد موظفون حتى الآن</p>'; return; }
-  const roleMap = { orders: 'موظف طلبات', sales: 'موظف مبيعات' };
-  const roleClass = { orders: 'rb-orders', sales: 'rb-sales' };
+  const roleMap = { orders:'موظف طلبات', sales:'موظف مبيعات', asst_manager:'مدير مساعد ⭐' };
+  const roleClass = { orders:'rb-orders', sales:'rb-sales', asst_manager:'rb-manager' };
+  const isManager = currentUser?.role === 'manager';
   el.innerHTML = STAFF.map(s => `
     <div class="staff-row">
       <div class="staff-info">
@@ -2160,29 +2293,30 @@ function renderStaffList() {
         <div class="staff-role"><span class="role-badge ${roleClass[s.role]||'rb-orders'}">${roleMap[s.role]||s.role}</span></div>
         <div class="staff-email">@${s.username}</div>
       </div>
-      <button class="del-staff-btn" onclick="delStaff(${s.id})">🗑 حذف</button>
+      ${isManager ? `<button class="del-staff-btn" onclick="delStaff(${s.id})">🗑 حذف</button>` : ''}
     </div>`).join('');
 }
-function openAddStaff() { openMod('add-staff-modal'); }
+function openAddStaff() { if(currentUser?.role==='manager') openMod('add-staff-modal'); }
 async function saveNewStaff() {
   const uname = document.getElementById('st-user').value.trim();
-  const pass = document.getElementById('st-pass').value;
-  const name = document.getElementById('st-name').value.trim();
-  const role = document.getElementById('st-role').value;
+  const pass  = document.getElementById('st-pass').value;
+  const name  = document.getElementById('st-name').value.trim();
+  const role  = document.getElementById('st-role').value;
   if (!uname || !pass) { toast('⚠️ أدخل اسم المستخدم وكلمة المرور'); return; }
   try {
-    const res = await sbPost('staff', { username: uname, password: pass, name, role });
+    const res = await sbPost('staff', { username:uname, password:pass, name, role });
     STAFF.push(res[0]);
     renderStaffList();
     closeMod('add-staff-modal');
-    toast(`✦ تمت إضافة الموظف ${name || uname}`);
+    toast(`✦ تمت إضافة ${name||uname}`);
   } catch(e) { toast('⚠️ خطأ — ربما اسم المستخدم مستخدم'); console.error(e); }
 }
 async function delStaff(id) {
+  if (currentUser?.role !== 'manager') return;
   if (!confirm('حذف هذا الموظف؟')) return;
   try {
     await sbDelete('staff', id);
-    STAFF = STAFF.filter(s => s.id !== id);
+    STAFF = STAFF.filter(s=>s.id!==id);
     renderStaffList();
     toast('تم حذف الموظف');
   } catch(e) { toast('⚠️ خطأ في الحذف'); }
@@ -2202,9 +2336,9 @@ function swSetTab(id, btn) {
 }
 async function saveSettings() {
   const phone = document.getElementById('s-phone').value.trim();
-  const wa    = document.getElementById('s-wa').value.trim();
+  const wa = document.getElementById('s-wa').value.trim();
   const email = document.getElementById('s-email').value.trim();
-  const addr  = document.getElementById('s-addr').value.trim();
+  const addr = document.getElementById('s-addr').value.trim();
   const brand = document.getElementById('s-brand').value.trim();
   const op = document.getElementById('s-old-p').value;
   const np = document.getElementById('s-new-p').value;
@@ -2212,9 +2346,9 @@ async function saveSettings() {
 
   const updates = {};
   if (phone) updates.phone = phone;
-  if (wa)    updates.whatsapp = wa;
+  if (wa) updates.whatsapp = wa;
   if (email) updates.email = email;
-  if (addr)  updates.address = addr;
+  if (addr) updates.address = addr;
   if (brand) updates.brand_name = brand;
   // احتفظ بالـ logo_url الموجودة
   if (SETTINGS.logo_url) updates.logo_url = SETTINGS.logo_url;
@@ -2229,7 +2363,7 @@ async function saveSettings() {
 
   try {
     if (SETTINGS.id) {
-      await sbPatch('settings', SETTINGS.id, updates);
+      const res = await sbPatch('settings', SETTINGS.id, updates);
       SETTINGS = { ...SETTINGS, ...updates };
     } else {
       const res = await sbPost('settings', { ...updates, manager_username: 'manager', manager_password: '9090' });
@@ -2241,7 +2375,6 @@ async function saveSettings() {
     toast('✦ تم حفظ الإعدادات على السحابة ✓');
   } catch(e) { toast('⚠️ خطأ في الحفظ'); console.error(e); }
 }
-
 async function handleLogoUpload(input) {
   const f = input.files[0]; if (!f) return;
   toast('⏳ جارٍ رفع اللوجو على السحابة...');
@@ -2265,7 +2398,6 @@ async function handleLogoUpload(input) {
         saveLocal('settings', SETTINGS);
         toast('✦ تم رفع اللوجو وحفظه على السحابة ✓');
       } else {
-        // إنشاء سجل الإعدادات لو مش موجود
         const res = await sbPost('settings', { logo_url: d, manager_username: 'manager', manager_password: '9090' });
         SETTINGS = res[0];
         saveLocal('settings', SETTINGS);
@@ -2274,6 +2406,134 @@ async function handleLogoUpload(input) {
     } catch(e) { toast('⚠️ خطأ في رفع اللوجو: ' + e.message); console.error(e); }
   };
   r.readAsDataURL(f);
+}
+
+// ══════════════════════════════════════
+// CUSTOMER PORTAL
+// ══════════════════════════════════════
+let currentCustomer = null;
+
+function openCustPortal() {
+  if (currentCustomer) {
+    showCustOrders();
+  } else {
+    openMod('cust-login-modal');
+  }
+}
+function closeCustPanel() { document.getElementById('cust-panel').classList.remove('open'); }
+
+function swCustTab(tab) {
+  document.getElementById('cust-login-form').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('cust-reg-form').style.display  = tab==='reg'   ? 'block' : 'none';
+  document.getElementById('cust-tab-login').classList.toggle('ac', tab==='login');
+  document.getElementById('cust-tab-reg').classList.toggle('ac', tab==='reg');
+}
+
+async function doCustLogin() {
+  const email = document.getElementById('cl-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('cl-pass').value;
+  if (!email || !pass) { toast('⚠️ أدخل الإيميل وكلمة المرور'); return; }
+  try {
+    const rows = await sbGet('customers', `email=eq.${encodeURIComponent(email)}&password=eq.${encodeURIComponent(pass)}&select=*`);
+    if (!rows.length) { toast('⚠️ الإيميل أو كلمة المرور غير صحيحة'); return; }
+    currentCustomer = rows[0];
+    closeMod('cust-login-modal');
+    document.getElementById('cust-btn-lbl').textContent = currentCustomer.name || 'حسابي';
+    toast(`✦ أهلاً ${currentCustomer.name || ''} 🌸`);
+    showCustOrders();
+  } catch(e) { toast('⚠️ خطأ في الاتصال'); console.error(e); }
+}
+
+async function doCustRegister() {
+  const name  = document.getElementById('cr-name').value.trim();
+  const email = document.getElementById('cr-email').value.trim().toLowerCase();
+  const phone = document.getElementById('cr-phone').value.trim();
+  const pass  = document.getElementById('cr-pass').value;
+  if (!email || !pass || !name) { toast('⚠️ الاسم والإيميل وكلمة المرور مطلوبة'); return; }
+  if (pass.length < 6) { toast('⚠️ كلمة المرور 6 أحرف على الأقل'); return; }
+  try {
+    const res = await sbPost('customers', { name, email, password: pass, phone });
+    currentCustomer = res[0];
+    closeMod('cust-login-modal');
+    document.getElementById('cust-btn-lbl').textContent = name;
+    toast(`✦ تم إنشاء حسابك بنجاح 🌸`);
+    showCustOrders();
+  } catch(e) {
+    if (e.message && e.message.includes('unique')) toast('⚠️ هذا الإيميل مسجّل بالفعل');
+    else toast('⚠️ خطأ في إنشاء الحساب'); console.error(e);
+  }
+}
+
+async function showCustOrders() {
+  const panel = document.getElementById('cust-panel');
+  const body  = document.getElementById('cust-body');
+  document.getElementById('cust-head-title').textContent = `🌸 حسابي — ${currentCustomer.name||currentCustomer.email}`;
+  panel.classList.add('open');
+  body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">⏳ جارٍ التحميل...</div>';
+  try {
+    const orders = await sbGet('orders', `customer_email=eq.${encodeURIComponent(currentCustomer.email)}&order=created_at.desc`);
+    if (!orders.length) {
+      body.innerHTML = `<div style="text-align:center;padding:40px">
+        <div style="font-size:3rem;margin-bottom:12px">🛍</div>
+        <p style="color:var(--muted)">لا توجد طلبات بعد</p>
+        <button class="m-save" style="margin-top:16px" onclick="closeCustPanel()">تسوّقي الآن 🌸</button>
+      </div>
+      <div style="text-align:center;margin-top:16px">
+        <button onclick="custLogout()" style="background:none;border:none;color:var(--muted);font-size:.82rem;cursor:pointer">تسجيل الخروج</button>
+      </div>`;
+      return;
+    }
+    const rows = orders.map(o => {
+      const items = Array.isArray(o.items) ? o.items : (()=>{try{return JSON.parse(o.items||'[]')}catch{return[]}})();
+      const d = new Date(o.created_at);
+      const dateStr = d.toLocaleDateString('ar-EG');
+      const tlHtml = TL_ORDER.map((s,i)=>{
+        const idx = TL_ORDER.indexOf(o.status);
+        const cls = i<idx?'done':i===idx?'active':'';
+        return `<div class="tl-step ${cls}">${statusLabel(s).replace(/\s.*$/,'')}</div>`;
+      }).join('→');
+      return `<div class="cust-order-card">
+        <div class="cust-order-hd">
+          <span class="cust-order-id">#${o.id} — ${dateStr}</span>
+          <span class="cust-order-total">${o.total} ج.م</span>
+        </div>
+        <div class="cust-order-items">🛍 ${items.map(i=>`${i.product_name} ×${i.qty}`).join(' · ')}</div>
+        <div class="cust-order-timeline">${tlHtml}</div>
+        <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">الحالة: <strong style="color:var(--pk)">${statusLabel(o.status)}</strong></div>
+      </div>`;
+    }).join('');
+    body.innerHTML = `<p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">طلباتك (${orders.length})</p>
+      ${rows}
+      <div style="text-align:center;margin-top:16px">
+        <button onclick="custLogout()" style="background:none;border:none;color:var(--muted);font-size:.82rem;cursor:pointer;text-decoration:underline">تسجيل الخروج</button>
+      </div>`;
+  } catch(e) { body.innerHTML = '<p style="color:var(--danger);text-align:center;padding:20px">⚠️ خطأ في تحميل الطلبات</p>'; console.error(e); }
+}
+
+function custLogout() {
+  currentCustomer = null;
+  document.getElementById('cust-btn-lbl').textContent = 'حسابي';
+  closeCustPanel();
+  toast('تم تسجيل الخروج');
+}
+
+// Customers list for manager dashboard
+async function loadCustomersList() {
+  const el = document.getElementById('cust-list');
+  if (!el) return;
+  try {
+    const custs = await sbGet('customers', 'order=created_at.desc');
+    if (!custs.length) { el.innerHTML = '<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px">لا يوجد عملاء مسجلون بعد</p>'; return; }
+    el.innerHTML = custs.map(c=>`
+      <div class="staff-row">
+        <div class="staff-info">
+          <div class="staff-name">${c.name||'—'}</div>
+          <div class="staff-email">${c.email}</div>
+          ${c.phone?`<div class="staff-email">📞 ${c.phone}</div>`:''}
+        </div>
+        <span style="font-size:.72rem;color:var(--muted)">${new Date(c.created_at).toLocaleDateString('ar-EG')}</span>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
 }
 
 // ══════════════════════════════════════
