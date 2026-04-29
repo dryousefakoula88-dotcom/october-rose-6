@@ -194,7 +194,22 @@ body.staff-sales .p-hbtn.del-btn,body.manager .p-hbtn.del-btn{display:flex;}
 .stock-qty-badge.low{background:#fff3cd;color:#856404;}
 .stock-qty-badge.zero{background:#f8d7da;color:#721c24;}
 
-/* ── INVENTORY PANEL ── */
+/* ── PRODUCT CARD TAB ── */
+.pc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed var(--border2);font-size:.82rem;gap:8px;}
+.pc-lbl{color:var(--muted);font-weight:600;flex-shrink:0;}
+.pc-val{color:var(--deep);font-weight:700;text-align:left;}
+.pc-pink{color:var(--pk)!important;}
+.pc-gold{color:var(--gd)!important;}
+.pc-green{color:var(--success)!important;}
+.pc-stat-box{background:#fff;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border2);box-shadow:0 2px 8px rgba(232,77,138,.07);}
+.pc-stat-num{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--pk);font-weight:700;line-height:1;}
+.pc-stat-lbl{font-size:.68rem;color:var(--muted);margin-top:4px;font-weight:600;}
+.pc-note-item{background:var(--pk-pale);border-right:3px solid var(--pk);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:.82rem;color:var(--deep);line-height:1.6;}
+.pc-note-meta{font-size:.7rem;color:var(--muted);margin-top:4px;}
+.pc-search-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px;transition:.15s;font-size:.85rem;}
+.pc-search-result-item:hover{background:var(--pk-pale);}
+.pc-search-result-item:last-child{border-bottom:none;}
+
 .inv-table{width:100%;border-collapse:collapse;font-size:.82rem;}
 .inv-table th{background:var(--dark);color:var(--gd);padding:8px 10px;text-align:right;}
 .inv-table td{padding:7px 10px;border-bottom:1px solid var(--border2);}
@@ -1392,7 +1407,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
     </div>
     <div style="text-align:right;margin-top:14px">
       <div class="f-row"><label>الاسم *</label><input id="rsv-name" placeholder="اسمك "></div>
-      <div class="f-row"><label>رقم الهاتف *</label><input id="rsv-phone" type="tel" placeholder="+20 1xx xxx xxxx"></div>
+      <div class="f-row"><label>رقم الهاتف *</label><input id="rsv-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
       <div class="f-row"><label>ملاحظات</label><textarea id="rsv-notes" rows="2" placeholder="أي تفاصيل إضافية..."></textarea></div>
     </div>
     <div style="background:var(--gd-pale);border-radius:10px;padding:10px 14px;font-size:.8rem;color:#6b4c00;margin-bottom:14px;text-align:right;line-height:1.7">
@@ -1471,6 +1486,9 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
       <button class="dash-nav-btn dash-mgr-only" data-tab="dt-suppliers" onclick="swDashNav('dt-suppliers',this)">
         <span class="dnb-icon">🏪</span><span>الموردون</span>
       </button>
+      <button class="dash-nav-btn dash-mgr-only" data-tab="dt-product-card" onclick="swDashNav('dt-product-card',this)">
+        <span class="dnb-icon">🔍</span><span>كارت المنتج</span>
+      </button>
       <button class="dash-nav-btn dash-mgr-only" data-tab="dt-treasury" onclick="swDashNav('dt-treasury',this)">
         <span class="dnb-icon">💰</span><span>الخزينة</span>
       </button>
@@ -1495,6 +1513,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
         <button class="dmt-btn dash-mgr-only" onclick="swDashNav('dt-purchase-invoice',this)" data-tab="dt-purchase-invoice">📥 فاتورة شراء</button>
         <button class="dmt-btn dash-mgr-only" onclick="swDashNav('dt-invoice',this)" data-tab="dt-invoice">🧾 بيع</button>
         <button class="dmt-btn dash-mgr-only" onclick="swDashNav('dt-suppliers',this)" data-tab="dt-suppliers">🏪 الموردون</button>
+        <button class="dmt-btn dash-mgr-only" onclick="swDashNav('dt-product-card',this)" data-tab="dt-product-card">🔍 كارت المنتج</button>
         <button class="dmt-btn dash-mgr-only" onclick="swDashNav('dt-treasury',this)" data-tab="dt-treasury">💰 الخزينة</button>
         <button class="dmt-btn" onclick="swDashNav('dt-staff',this)" data-tab="dt-staff">👥 الموظفون</button>
         <button class="dmt-btn dash-mgr-only" onclick="swDashNav('dt-customers',this)" data-tab="dt-customers">🌸 العملاء</button>
@@ -1588,7 +1607,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
           <input type="hidden" id="po-edit-id" value="">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div class="f-row" style="margin:0"><label>اسم المورّد</label><input id="po-supplier" placeholder="مثال: شركة الجمال للتوزيع"></div>
-            <div class="f-row" style="margin:0"><label>رقم هاتف المورّد</label><input id="po-supplier-phone" type="tel" placeholder="+20 1xx xxx xxxx"></div>
+            <div class="f-row" style="margin:0"><label>رقم هاتف المورّد</label><input id="po-supplier-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
             <div class="f-row" style="margin:0"><label>رقم الأمر</label><input id="po-number" placeholder="PO-001"></div>
             <div class="f-row" style="margin:0"><label>تاريخ الأمر</label><input id="po-date" type="date"></div>
             <div class="f-row" style="margin:0;grid-column:1/-1"><label>ملاحظات / شروط الدفع</label><input id="po-notes" placeholder="مثال: الدفع فور الاستلام"></div>
@@ -1664,7 +1683,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
           <input type="hidden" id="inv-edit-id" value="">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div class="f-row" style="margin:0"><label>اسم العميل</label><input id="inv-client" placeholder="اسم العميل أو الشركة"></div>
-            <div class="f-row" style="margin:0"><label>رقم هاتف العميل</label><input id="inv-client-phone" type="tel" placeholder="+20 1xx xxx xxxx"></div>
+            <div class="f-row" style="margin:0"><label>رقم هاتف العميل</label><input id="inv-client-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
             <div class="f-row" style="margin:0;grid-column:1/-1"><label>📍 عنوان العميل</label><input id="inv-client-address" placeholder="العنوان / المنطقة / المدينة"></div>
             <div class="f-row" style="margin:0"><label>رقم الفاتورة</label><input id="inv-number" placeholder="INV-001"></div>
             <div class="f-row" style="margin:0"><label>تاريخ الفاتورة</label><input id="inv-date" type="date"></div>
@@ -1757,7 +1776,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
               <input id="pi-supplier" placeholder="اختر مورّد أو اكتب..." list="pi-supplier-list" oninput="onPiSupplierInput()">
               <datalist id="pi-supplier-list"></datalist>
             </div>
-            <div class="f-row" style="margin:0"><label>رقم هاتف المورّد</label><input id="pi-supplier-phone" type="tel" placeholder="+20 1xx xxx xxxx"></div>
+            <div class="f-row" style="margin:0"><label>رقم هاتف المورّد</label><input id="pi-supplier-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
             <div class="f-row" style="margin:0"><label>رقم الفاتورة</label><input id="pi-number" placeholder="PI-001"></div>
             <div class="f-row" style="margin:0"><label>تاريخ الفاتورة</label><input id="pi-date" type="date"></div>
             <div class="f-row" style="margin:0"><label>طريقة الدفع</label>
@@ -1813,6 +1832,130 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
         </div>
       </div>
 
+      <!-- TAB: PRODUCT CARD كارت المنتج -->
+      <div id="dt-product-card" class="dash-tab-panel">
+        <div class="dash-page-hdr">
+          <h2><span>🔍</span> كارت بيانات المنتج</h2>
+          <div class="dph-actions">
+            <button id="pc-export-btn" onclick="exportProductCardPDF()" style="display:none;background:linear-gradient(135deg,#c0246e,#e84d8a);color:#fff;border:none;border-radius:12px;padding:8px 18px;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(232,77,138,.35)">📄 تصدير PDF</button>
+          </div>
+        </div>
+
+        <!-- Search Box -->
+        <div style="background:#fff;border-radius:16px;padding:20px;border:1.5px solid var(--border);margin-bottom:20px;box-shadow:0 2px 12px rgba(232,77,138,.07)">
+          <label style="font-weight:700;font-size:.85rem;color:var(--deep);display:block;margin-bottom:8px">🔎 ابحث عن منتج (بالاسم، الكود، القسم، أي جزء من البيانات)</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <input id="pc-search-inp" type="text" placeholder="مثال: OR-MK-001 أو كحل أو شعر..." oninput="pcSearch()" autocomplete="off"
+              style="flex:1;min-width:200px;border:2px solid var(--border);border-radius:12px;padding:10px 16px;font-size:.9rem;font-family:'Tajawal',sans-serif;outline:none;color:var(--deep);transition:.2s"
+              onfocus="this.style.borderColor='var(--pk)'" onblur="this.style.borderColor='var(--border)'">
+            <button onclick="pcSearch()" style="background:var(--pk);color:#fff;border:none;border-radius:12px;padding:10px 22px;font-size:.85rem;font-weight:700;cursor:pointer">بحث</button>
+            <button onclick="pcClear()" style="background:var(--pk-pale);color:var(--pk);border:1.5px solid var(--pk);border-radius:12px;padding:10px 16px;font-size:.85rem;font-weight:700;cursor:pointer">مسح</button>
+          </div>
+          <!-- Search Results Dropdown -->
+          <div id="pc-results" style="display:none;margin-top:10px;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;max-height:240px;overflow-y:auto"></div>
+        </div>
+
+        <!-- Product Card -->
+        <div id="pc-card" style="display:none">
+          <!-- Card Header -->
+          <div id="pc-card-inner" style="background:#fff;border-radius:20px;overflow:hidden;border:1.5px solid var(--border);box-shadow:0 4px 24px rgba(232,77,138,.1)">
+
+            <!-- Top Banner -->
+            <div style="background:linear-gradient(135deg,var(--blk),var(--dark),#4a0e28);padding:20px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden">
+              <div style="position:absolute;inset:0;opacity:.07;background:repeating-linear-gradient(45deg,var(--pk),var(--pk) 1px,transparent 1px,transparent 10px)"></div>
+              <div id="pc-img-wrap" style="width:80px;height:80px;border-radius:14px;overflow:hidden;border:2px solid var(--gd);flex-shrink:0;background:var(--pk-pale);display:flex;align-items:center;justify-content:center;font-size:2.5rem"></div>
+              <div style="flex:1;position:relative;z-index:1">
+                <div id="pc-cat-lbl" style="font-size:.68rem;color:var(--gd);letter-spacing:2px;font-weight:700;text-transform:uppercase;margin-bottom:4px"></div>
+                <div id="pc-name" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#fff;font-weight:700;line-height:1.25;margin-bottom:6px"></div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span id="pc-sku-badge" style="background:rgba(212,160,23,.2);border:1px solid var(--gd);color:var(--gd);border-radius:20px;padding:2px 12px;font-size:.72rem;font-weight:700"></span>
+                  <span id="pc-stock-badge" style="border-radius:20px;padding:2px 12px;font-size:.72rem;font-weight:700"></span>
+                </div>
+              </div>
+              <div style="text-align:center;position:relative;z-index:1">
+                <div id="pc-price-big" style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--pk);font-weight:700;line-height:1"></div>
+                <div id="pc-old-price" style="font-size:.8rem;color:#999;text-decoration:line-through;margin-top:2px"></div>
+                <div id="pc-discount-badge" style="font-size:.72rem;font-weight:700;margin-top:4px"></div>
+              </div>
+            </div>
+
+            <!-- Body Grid -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+
+              <!-- Col 1: Pricing & Stock -->
+              <div style="padding:18px 20px;border-left:1px solid var(--border2)">
+                <h4 style="font-size:.78rem;color:var(--pk);font-weight:700;letter-spacing:1.5px;margin-bottom:12px;text-transform:uppercase">💰 التسعير والمخزون</h4>
+                <div class="pc-row"><span class="pc-lbl">سعر البيع</span><span id="pc-price" class="pc-val pc-pink"></span></div>
+                <div class="pc-row"><span class="pc-lbl">سعر قبل الخصم</span><span id="pc-old" class="pc-val"></span></div>
+                <div class="pc-row"><span class="pc-lbl">نسبة الخصم</span><span id="pc-disc" class="pc-val pc-gold"></span></div>
+                <div class="pc-row"><span class="pc-lbl">سعر الشراء</span><span id="pc-cost" class="pc-val"></span></div>
+                <div class="pc-row"><span class="pc-lbl">هامش الربح</span><span id="pc-profit" class="pc-val pc-green"></span></div>
+                <div class="pc-row"><span class="pc-lbl">نسبة الربح</span><span id="pc-profit-pct" class="pc-val pc-green"></span></div>
+                <div class="pc-row" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)"><span class="pc-lbl">الكمية الحالية</span><span id="pc-qty" class="pc-val" style="font-size:1.1rem;font-weight:800"></span></div>
+                <div class="pc-row"><span class="pc-lbl">الحالة</span><span id="pc-status" class="pc-val"></span></div>
+                <div class="pc-row"><span class="pc-lbl">العربون</span><span id="pc-deposit" class="pc-val"></span></div>
+              </div>
+
+              <!-- Col 2: Details -->
+              <div style="padding:18px 20px">
+                <h4 style="font-size:.78rem;color:var(--pk);font-weight:700;letter-spacing:1.5px;margin-bottom:12px;text-transform:uppercase">📋 تفاصيل المنتج</h4>
+                <div class="pc-row"><span class="pc-lbl">القسم</span><span id="pc-cat" class="pc-val"></span></div>
+                <div class="pc-row"><span class="pc-lbl">الوسم / باج</span><span id="pc-badge" class="pc-val"></span></div>
+                <div class="pc-row"><span class="pc-lbl">تاريخ الإضافة</span><span id="pc-date" class="pc-val"></span></div>
+                <div style="margin-top:10px">
+                  <div style="font-size:.75rem;color:var(--muted);font-weight:700;margin-bottom:4px">الوصف</div>
+                  <div id="pc-desc" style="font-size:.82rem;color:var(--deep);line-height:1.7;background:var(--bg);padding:10px;border-radius:10px;min-height:40px"></div>
+                </div>
+                <div style="margin-top:10px" id="pc-ingr-wrap">
+                  <div style="font-size:.75rem;color:var(--muted);font-weight:700;margin-bottom:4px">المكونات / المواصفات</div>
+                  <div id="pc-ingr" style="font-size:.82rem;color:var(--deep);line-height:1.7;background:var(--bg);padding:10px;border-radius:10px"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sales Stats Row -->
+            <div style="background:linear-gradient(135deg,var(--pk-pale),var(--gd-pale));padding:16px 20px;border-top:1px solid var(--border2)">
+              <h4 style="font-size:.78rem;color:var(--pk);font-weight:700;letter-spacing:1.5px;margin-bottom:12px;text-transform:uppercase">📊 إحصائيات الطلبات والمبيعات</h4>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px" id="pc-stats-grid">
+                <div class="pc-stat-box"><div class="pc-stat-num" id="pc-stat-orders">—</div><div class="pc-stat-lbl">مرات الطلب</div></div>
+                <div class="pc-stat-box"><div class="pc-stat-num" id="pc-stat-qty-sold">—</div><div class="pc-stat-lbl">إجمالي الكمية المباعة</div></div>
+                <div class="pc-stat-box"><div class="pc-stat-num" id="pc-stat-revenue">—</div><div class="pc-stat-lbl">إجمالي الإيراد</div></div>
+                <div class="pc-stat-box"><div class="pc-stat-num" id="pc-stat-profit-total">—</div><div class="pc-stat-lbl">إجمالي الأرباح</div></div>
+              </div>
+            </div>
+
+            <!-- Customer Notes -->
+            <div style="padding:18px 20px;border-top:1px solid var(--border2)">
+              <h4 style="font-size:.78rem;color:var(--pk);font-weight:700;letter-spacing:1.5px;margin-bottom:12px;text-transform:uppercase">💬 ملاحظات العملاء من الطلبات</h4>
+              <div id="pc-customer-notes" style="font-size:.82rem;color:var(--muted);font-style:italic;text-align:center;padding:16px">
+                ⏳ جارٍ تحميل الملاحظات...
+              </div>
+            </div>
+
+            <!-- Tips & Usage -->
+            <div style="padding:18px 20px;border-top:1px solid var(--border2);display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div id="pc-tips-wrap">
+                <h4 style="font-size:.78rem;color:var(--pk);font-weight:700;letter-spacing:1.5px;margin-bottom:8px;text-transform:uppercase">✨ نصائح الاستخدام</h4>
+                <div id="pc-tips" style="font-size:.82rem;color:var(--deep);line-height:1.7;background:var(--bg);padding:10px;border-radius:10px;min-height:36px"></div>
+              </div>
+              <div id="pc-usage-wrap">
+                <h4 style="font-size:.78rem;color:var(--pk);font-weight:700;letter-spacing:1.5px;margin-bottom:8px;text-transform:uppercase">📖 طريقة الاستخدام</h4>
+                <div id="pc-usage" style="font-size:.82rem;color:var(--deep);line-height:1.7;background:var(--bg);padding:10px;border-radius:10px;min-height:36px"></div>
+              </div>
+            </div>
+
+          </div><!-- /pc-card-inner -->
+        </div><!-- /pc-card -->
+
+        <!-- Empty State -->
+        <div id="pc-empty" style="text-align:center;padding:60px 20px;color:var(--muted)">
+          <div style="font-size:3.5rem;margin-bottom:12px">🔍</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--deep);margin-bottom:6px">ابحث عن أي منتج</div>
+          <div style="font-size:.85rem">اكتب اسم المنتج أو الكود أو القسم في خانة البحث لعرض كارت بياناته الكامل</div>
+        </div>
+      </div>
+      <!-- END TAB: PRODUCT CARD -->
+
       <!-- TAB: SUPPLIERS الموردون -->
       <div id="dt-suppliers" class="dash-tab-panel">
         <div class="dash-page-hdr">
@@ -1826,7 +1969,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
           <input type="hidden" id="sup-edit-id" value="">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="f-row" style="margin:0"><label>اسم المورّد *</label><input id="sup-name" placeholder="اسم الشركة أو الشخص"></div>
-            <div class="f-row" style="margin:0"><label>رقم الهاتف</label><input id="sup-phone" type="tel" placeholder="+20 1xx xxx xxxx"></div>
+            <div class="f-row" style="margin:0"><label>رقم الهاتف</label><input id="sup-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
             <div class="f-row" style="margin:0"><label>البريد الإلكتروني</label><input id="sup-email" type="email" placeholder="email@example.com"></div>
             <div class="f-row" style="margin:0"><label>العنوان / المنطقة</label><input id="sup-address" placeholder="القاهرة، مصر..."></div>
             <div class="f-row" style="margin:0;grid-column:1/-1"><label>ملاحظات</label><input id="sup-notes" placeholder="شروط التعامل، المنتجات الرئيسية..."></div>
@@ -1844,6 +1987,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
         <div class="dash-page-hdr">
           <h2><span>💰</span> الخزينة والحسابات</h2>
           <div class="dph-actions">
+            <button onclick="exportTreasuryExcel()" class="excel-btn"><span class="xls-icon">📊</span> تصدير Excel</button>
             <button onclick="loadTreasury()" style="background:var(--pk-pale);color:var(--pk);border:1px solid var(--pk);border-radius:12px;padding:8px 14px;font-size:.8rem;cursor:pointer">🔄 تحديث</button>
           </div>
         </div>
@@ -1957,7 +2101,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
   <div class="cs-foot" id="cs-foot" style="display:none">
     <div class="checkout-form">
       <input id="buyer-name" placeholder="اسمك هنا*">
-      <input id="buyer-phone" placeholder="رقم هاتفك *" type="tel">
+      <input id="buyer-phone" placeholder="رقم هاتفك *" type="tel" maxlength="11">
       <input id="buyer-address" placeholder="عنوانك (اختياري)">
     </div>
     <div class="cs-total-row"><span>الإجمالي</span><span id="cs-total">0 ج.م</span></div>
@@ -2055,8 +2199,8 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
       <button class="s-tab" onclick="swSetTab('set-pass',this)">كلمات المرور</button>
     </div>
     <div id="set-contact">
-      <div class="f-row"><label>رقم الهاتف</label><input id="s-phone" placeholder="+20 100 000 0000"></div>
-      <div class="f-row"><label>رقم واتساب (لاستقبال الطلبات)</label><input id="s-wa" placeholder="+20 100 000 0000"></div>
+      <div class="f-row"><label>رقم الهاتف</label><input id="s-phone" placeholder="100 000 0000"></div>
+      <div class="f-row"><label>رقم واتساب (لاستقبال الطلبات)</label><input id="s-wa" placeholder="100 000 0000"></div>
       <div class="f-row"><label>البريد الإلكتروني</label><input id="s-email" type="email"></div>
       <div class="f-row"><label>العنوان</label><input id="s-addr"></div>
     </div>
@@ -2194,7 +2338,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
     <div id="cust-reg-form" style="display:none">
       <div class="f-row" style="text-align:right"><label>الاسم *</label><input id="cr-name" placeholder="اسمك "></div>
       <div class="f-row" style="text-align:right"><label>البريد الإلكتروني *</label><input id="cr-email" type="email" placeholder="example@email.com"></div>
-      <div class="f-row" style="text-align:right"><label>رقم الهاتف</label><input id="cr-phone" type="tel" placeholder="+20 1xx xxx xxxx"></div>
+      <div class="f-row" style="text-align:right"><label>رقم الهاتف</label><input id="cr-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
       <div class="f-row" style="text-align:right"><label>كلمة المرور *</label>
         <div class="pw-wrap"><input type="password" id="cr-pass" placeholder="••••••••"><button class="pw-eye" onclick="togglePw('cr-pass',this)">👁</button></div>
       </div>
@@ -3026,9 +3170,18 @@ function openReserveModal() {
 
 async function submitReservation() {
   const name  = document.getElementById('rsv-name').value.trim();
-  const phone = document.getElementById('rsv-phone').value.trim();
+  const phoneRaw = document.getElementById('rsv-phone').value.trim();
   const notes = document.getElementById('rsv-notes').value.trim();
-  if (!name || !phone) { toast('⚠️ أدخل الاسم والهاتف'); return; }
+  
+  if (!name || !phoneRaw) { toast('⚠️ أدخل الاسم والهاتف'); return; }
+  
+  // تحويل رقم الهاتف إلى الصيغة المصرية الكاملة
+  const phone = getFullEgyptPhone(phoneRaw);
+  if (!phone) { 
+    toast('⚠️ رقم الهاتف غير صحيح. يجب أن يبدأ بـ 10 أو 11 أو 12 أو 15'); 
+    return; 
+  }
+  
   const p = PRODUCTS.find(x => x.id === openProdId);
   if (!p) return;
 
@@ -3246,11 +3399,22 @@ async function checkout() {
   const phoneEl = document.getElementById('buyer-phone');
   if (currentCustomer) {
     if (!nameEl.value)  nameEl.value  = currentCustomer.name  || '';
-    if (!phoneEl.value) phoneEl.value = currentCustomer.phone || '';
+    // تنظيف رقم الهاتف من الكود الدولي عند العرض
+    if (!phoneEl.value && currentCustomer.phone) {
+      phoneEl.value = formatEgyptPhone(currentCustomer.phone);
+    }
   }
   const name  = nameEl.value.trim();
-  const phone = phoneEl.value.trim();
-  if (!name || !phone) { toast('⚠️ أدخل الاسم والهاتف'); return; }
+  const phoneRaw = phoneEl.value.trim();
+  
+  if (!name || !phoneRaw) { toast('⚠️ أدخل الاسم والهاتف'); return; }
+  
+  // تحويل رقم الهاتف إلى الصيغة المصرية الكاملة
+  const phone = getFullEgyptPhone(phoneRaw);
+  if (!phone) { 
+    toast('⚠️ رقم الهاتف غير صحيح. يجب أن يبدأ بـ 10 أو 11 أو 12 أو 15'); 
+    return; 
+  }
 
   const items = cart.map(i => ({ product_id:i.id, product_name:i.name, qty:i.qty, price:i.price }));
   const total = cart.reduce((s,i) => s + i.price*i.qty, 0);
@@ -3466,16 +3630,79 @@ function downloadExcel(htmlContent, filename) {
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
-function exportInventoryExcel() {
-  const headers = ['الكود (SKU)', 'اسم المنتج', 'القسم', 'السعر (ج.م)', 'الكمية المتاحة', 'الحالة'];
-  const rows = PRODUCTS.map(p => {
-    const inv = INVENTORY[p.id] || {};
-    const qty = inv.qty ?? 0;
-    const status = qty === 0 ? 'نفد المخزون' : qty <= 3 ? 'كمية منخفضة' : 'متاح';
-    const catMap = {hair:'شعر',face:'وجه',body:'جسم',makeup:'ميك أب',women:'نسائي',care:'عناية'};
-    return [inv.sku||'—', p.name, catMap[p.cat]||p.cat, p.price+' ج.م', qty, status];
+async function exportInventoryExcel() {
+  toast('⏳ جارٍ تجهيز ملف Excel الشامل...');
+
+  // جلب آخر مورد لكل منتج من أوامر الشراء
+  let lastSupplierMap = {};
+  try {
+    const purchases = await sbGet('purchase_orders', 'order=created_at.desc&select=items,supplier_name,supplier_phone');
+    purchases.forEach(po => {
+      if (!po.items || !po.supplier_name) return;
+      const items = typeof po.items === 'string' ? JSON.parse(po.items) : po.items;
+      (items || []).forEach(item => {
+        const pid = item.product_id || item.id;
+        if (pid && !lastSupplierMap[pid]) {
+          lastSupplierMap[pid] = po.supplier_name + (po.supplier_phone ? ' — ' + po.supplier_phone : '');
+        }
+      });
+    });
+  } catch(e) {
+    // إذا فشل جلب الموردين، نكمل بدونهم
+    console.warn('Could not fetch suppliers:', e);
+  }
+
+  const catMap = {hair:'💇‍♀️ شعر',face:'✨ وجه',body:'🧴 جسم',makeup:'💄 ميك أب',women:'👸 نسائي',care:'🌿 عناية'};
+  const storeColor = '#e84d8a';
+  const goldColor  = '#d4a017';
+  const darkBg     = '#1a0b10';
+
+  // بناء الجدول يدوياً لدعم الصور
+  let rows = '';
+  PRODUCTS.forEach((p, i) => {
+    const qty       = p.stock_qty ?? 0;
+    const salePrice = parseFloat(p.price) || 0;
+    const oldPrice  = parseFloat(p.old_price) || 0;
+    const costPrice = parseFloat(p.cost) || 0;
+    const discount  = (oldPrice > 0 && salePrice > 0 && oldPrice > salePrice)
+                      ? ((oldPrice - salePrice) / oldPrice * 100).toFixed(0) + '%'
+                      : '—';
+    const profitAmt = (costPrice > 0 && salePrice > 0) ? (salePrice - costPrice).toFixed(2) + ' ج.م' : '—';
+    const profitPct = (costPrice > 0 && salePrice > 0) ? (((salePrice - costPrice) / salePrice) * 100).toFixed(1) + '%' : '—';
+    const status    = qty === 0 ? '❌ نفد' : qty <= 3 ? '⚠️ منخفض' : '✅ متاح';
+    const supplier  = lastSupplierMap[p.id] || '—';
+    const bg        = i % 2 === 0 ? '#fff' : '#fdf4f8';
+    rows += `<tr>
+      <td style="padding:8px 12px;background:${bg};color:#2c1020;border:1px solid #ecd4e0;font-size:11px;font-weight:700">${p.sku||'—'}</td>
+      <td style="padding:8px 12px;background:${bg};color:#2c1020;border:1px solid #ecd4e0;font-size:11px">${p.name}</td>
+      <td style="padding:8px 12px;background:${bg};color:#7a5a6a;border:1px solid #ecd4e0;font-size:11px;text-align:center">${catMap[p.cat]||p.cat}</td>
+      <td style="padding:8px 12px;background:${bg};color:#bbb;border:1px solid #ecd4e0;font-size:11px;text-align:center;text-decoration:line-through">${oldPrice > 0 ? oldPrice.toFixed(2) + ' ج.م' : '—'}</td>
+      <td style="padding:8px 12px;background:${bg};color:#e84d8a;border:1px solid #ecd4e0;font-size:12px;font-weight:700;text-align:center">${salePrice > 0 ? salePrice.toFixed(2) + ' ج.م' : '—'}</td>
+      <td style="padding:8px 12px;background:${bg};color:#d4a017;border:1px solid #ecd4e0;font-size:11px;text-align:center">${discount}</td>
+      <td style="padding:8px 12px;background:${bg};color:#2c1020;border:1px solid #ecd4e0;font-size:11px;text-align:center">${costPrice > 0 ? costPrice.toFixed(2) + ' ج.م' : '—'}</td>
+      <td style="padding:8px 12px;background:${bg};color:#27ae60;border:1px solid #ecd4e0;font-size:11px;text-align:center">${profitAmt}</td>
+      <td style="padding:8px 12px;background:${bg};color:#27ae60;border:1px solid #ecd4e0;font-size:11px;text-align:center">${profitPct}</td>
+      <td style="padding:8px 12px;background:${bg};color:#2c1020;border:1px solid #ecd4e0;font-size:12px;font-weight:700;text-align:center">${qty}</td>
+      <td style="padding:8px 12px;background:${bg};border:1px solid #ecd4e0;font-size:11px;text-align:center">${status}</td>
+      <td style="padding:8px 12px;background:${bg};color:#5a3070;border:1px solid #ecd4e0;font-size:11px;text-align:center">${supplier}</td>
+    </tr>`;
   });
-  downloadExcel(buildExcelFromData(headers, rows, 'المخزون', 'تقرير المخزون والأكواد'), 'October_Rose_inventory_'+Date.now());
+
+  const headers = ['الكود (SKU)','اسم المنتج','القسم','سعر قبل الخصم','سعر البيع','نسبة الخصم','سعر الشراء','هامش الربح','نسبة الربح %','الكمية الحالية','الحالة','آخر مورد'];
+  const colCount = headers.length;
+
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>المنتجات</x:Name><x:WorksheetOptions><x:DisplayRightToLeft/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body dir="rtl"><table border="1" style="border-collapse:collapse;font-family:Tajawal,Arial;direction:rtl">
+<tr><td colspan="${colCount}" style="background:${darkBg};color:${goldColor};font-size:16px;font-weight:bold;text-align:center;padding:14px;border:2px solid ${goldColor}">🌹 October Rose 6 — تقرير شامل لكل المنتجات</td></tr>
+<tr><td colspan="${colCount}" style="background:${storeColor};color:#fff;font-size:10px;text-align:center;padding:4px">Make Up &amp; Cosmetics | تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')} | إجمالي المنتجات: ${PRODUCTS.length}</td></tr>
+<tr>${headers.map(h=>`<th style="background:${darkBg};color:${goldColor};padding:10px 14px;font-weight:bold;border:1px solid ${goldColor};font-size:12px">${h}</th>`).join('')}</tr>
+${rows}
+<tr><td colspan="${colCount}" style="background:#fde8f1;color:#7a5a6a;font-size:9px;text-align:center;padding:6px;border-top:2px solid ${storeColor}">October Rose 6 — جميع الحقوق محفوظة © ${new Date().getFullYear()}</td></tr>
+</table></body></html>`;
+
+  downloadExcel(html, 'October_Rose_full_products_'+Date.now());
+  toast('✅ تم تصدير ملف Excel الشامل بنجاح!');
 }
 async function exportDashboardExcel() {
   try {
@@ -3501,6 +3728,45 @@ async function exportCustomersExcel() {
     ]);
     downloadExcel(buildExcelFromData(headers, rows, 'العملاء', 'قائمة العملاء المسجّلين'), 'October_Rose_customers_'+Date.now());
   } catch(e) { alert('تعذّر تصدير بيانات العملاء'); }
+}
+
+async function exportTreasuryExcel() {
+  try {
+    const list = await sbGet('treasury', 'order=created_at.desc&select=*');
+    const allItems = await sbGet('treasury', 'select=type,amount');
+    let totalSales = 0, totalPurchases = 0, totalExpenses = 0;
+    allItems.forEach(item => {
+      const amt = parseFloat(item.amount) || 0;
+      if (item.type === 'sales_income' || item.type === 'income') totalSales += amt;
+      else if (item.type === 'purchase_expense') totalPurchases += amt;
+      else if (item.type === 'expense') totalExpenses += amt;
+    });
+    const netProfit = totalSales - totalPurchases - totalExpenses;
+    const typeLabels = { sales_income:'محصّل بيع', purchase_expense:'مصروف شراء', expense:'مصروف عام', income:'إيراد' };
+    // Summary rows at top
+    const headers = ['التاريخ', 'النوع', 'البيان', 'المبلغ (ج.م)', 'الإشارة'];
+    const summaryRows = [
+      ['— ملخص الخزينة —', '', '', '', ''],
+      ['', 'إجمالي المحصّل', '', totalSales.toFixed(2), '+'],
+      ['', 'مصاريف الشراء', '', totalPurchases.toFixed(2), '−'],
+      ['', 'مصاريف عامة', '', totalExpenses.toFixed(2), '−'],
+      ['', 'صافي الربح', '', netProfit.toFixed(2), netProfit >= 0 ? '✓' : '✗'],
+      ['', '', '', '', ''],
+      ['— تفاصيل الحركات —', '', '', '', ''],
+    ];
+    const detailRows = (list||[]).map(tr => {
+      const isIncome = tr.type === 'sales_income' || tr.type === 'income';
+      return [
+        tr.created_at ? new Date(tr.created_at).toLocaleDateString('ar-EG') : '—',
+        typeLabels[tr.type] || tr.type,
+        tr.description || '—',
+        parseFloat(tr.amount).toFixed(2),
+        isIncome ? '+' : '−'
+      ];
+    });
+    const rows = [...summaryRows, ...detailRows];
+    downloadExcel(buildExcelFromData(headers, rows, 'الخزينة', 'تقرير الخزينة والحسابات'), 'October_Rose_treasury_'+Date.now());
+  } catch(e) { alert('تعذّر تصدير بيانات الخزينة: ' + e.message); }
 }
 
 function renderStaffList() {
@@ -3667,16 +3933,31 @@ async function saveManagerEdit() {
   if (!uname) { toast('⚠️ اسم المستخدم مطلوب'); return; }
   if (!oldPass) { toast('⚠️ كلمة المرور الحالية مطلوبة للتأكيد'); return; }
   if (oldPass !== SETTINGS.manager_password) { toast('⚠️ كلمة المرور الحالية غير صحيحة'); return; }
+  // Only send columns that definitely exist in Supabase settings table
   const updates = { manager_username: uname };
-  if (name) updates.manager_name = name;
   if (newPass) updates.manager_password = newPass;
+  // Try to include manager_name — if column missing, retry without it
+  const updatesWithName = name ? { ...updates, manager_name: name } : updates;
   try {
     if (SETTINGS.id) {
-      await sbPatch('settings', SETTINGS.id, updates);
+      try {
+        await sbPatch('settings', SETTINGS.id, updatesWithName);
+      } catch(e1) {
+        if (e1.message && e1.message.includes('manager_name')) {
+          // Column doesn't exist — save without manager_name to DB, keep in local only
+          await sbPatch('settings', SETTINGS.id, updates);
+        } else { throw e1; }
+      }
     } else {
-      await sbPost('settings', { ...updates, manager_password: newPass || oldPass });
+      try {
+        await sbPost('settings', { ...updatesWithName, manager_password: newPass || oldPass });
+      } catch(e1) {
+        if (e1.message && e1.message.includes('manager_name')) {
+          await sbPost('settings', { ...updates, manager_password: newPass || oldPass });
+        } else { throw e1; }
+      }
     }
-    Object.assign(SETTINGS, updates);
+    Object.assign(SETTINGS, updatesWithName);
     if (newPass) SETTINGS.manager_password = newPass;
     saveLocal('settings', SETTINGS);
     // Update displayed info
@@ -3692,6 +3973,19 @@ async function saveManagerEdit() {
 // ══════════════════════════════════════
 function openSettings() {
   if (currentUser?.role !== 'manager') return;
+  
+  // تعبئة الحقول بالقيم الحالية مع إزالة الكود الدولي من أرقام الهواتف
+  const phoneInput = document.getElementById('s-phone');
+  const waInput = document.getElementById('s-wa');
+  
+  if (phoneInput && SETTINGS.phone) {
+    phoneInput.value = formatEgyptPhone(SETTINGS.phone);
+  }
+  
+  if (waInput && SETTINGS.whatsapp) {
+    waInput.value = formatEgyptPhone(SETTINGS.whatsapp);
+  }
+  
   openMod('set-modal');
 }
 function swSetTab(id, btn) {
@@ -3700,8 +3994,8 @@ function swSetTab(id, btn) {
   btn.classList.add('ac');
 }
 async function saveSettings() {
-  const phone = document.getElementById('s-phone').value.trim();
-  const wa = document.getElementById('s-wa').value.trim();
+  const phoneRaw = document.getElementById('s-phone').value.trim();
+  const waRaw = document.getElementById('s-wa').value.trim();
   const email = document.getElementById('s-email').value.trim();
   const addr = document.getElementById('s-addr').value.trim();
   const brand = document.getElementById('s-brand').value.trim();
@@ -3710,8 +4004,27 @@ async function saveSettings() {
   const cp = document.getElementById('s-conf-p').value;
 
   const updates = {};
-  if (phone) updates.phone = phone;
-  if (wa) updates.whatsapp = wa;
+  
+  // معالجة رقم الهاتف
+  if (phoneRaw) {
+    const phone = getFullEgyptPhone(phoneRaw);
+    if (!phone) {
+      toast('⚠️ رقم الهاتف غير صحيح');
+      return;
+    }
+    updates.phone = phone;
+  }
+  
+  // معالجة رقم الواتساب
+  if (waRaw) {
+    const wa = getFullEgyptPhone(waRaw);
+    if (!wa) {
+      toast('⚠️ رقم واتساب غير صحيح');
+      return;
+    }
+    updates.whatsapp = wa;
+  }
+  
   if (email) updates.email = email;
   if (addr) updates.address = addr;
   if (brand) updates.brand_name = brand;
@@ -3812,10 +4125,22 @@ async function doCustLogin() {
 async function doCustRegister() {
   const name  = document.getElementById('cr-name').value.trim();
   const email = document.getElementById('cr-email').value.trim().toLowerCase();
-  const phone = document.getElementById('cr-phone').value.trim();
+  const phoneRaw = document.getElementById('cr-phone').value.trim();
   const pass  = document.getElementById('cr-pass').value;
+  
   if (!email || !pass || !name) { toast('⚠️ الاسم والإيميل وكلمة المرور مطلوبة'); return; }
   if (pass.length < 6) { toast('⚠️ كلمة المرور 6 أحرف على الأقل'); return; }
+  
+  // معالجة رقم الهاتف إذا تم إدخاله
+  let phone = null;
+  if (phoneRaw) {
+    phone = getFullEgyptPhone(phoneRaw);
+    if (!phone) {
+      toast('⚠️ رقم الهاتف غير صحيح');
+      return;
+    }
+  }
+  
   try {
     const res = await sbPost('customers', { name, email, password: pass, phone });
     if (!res || !res[0]) throw new Error('لم يتم إرجاع بيانات من السيرفر');
@@ -3992,12 +4317,281 @@ function swDashNav(id, navBtn) {
     if (!document.getElementById('pi-edit-id').value) initPiRows();
   }
   if (id === 'dt-suppliers') loadSupplierList();
+  if (id === 'dt-product-card') { /* ready — search driven */ }
   if (id === 'dt-treasury') loadTreasury();
   if (id === 'dt-users') loadUsersList();
 }
 
 // ══════════════════════════════════════
-// SUPABASE TABLES REQUIRED (run once in SQL Editor):
+// PRODUCT CARD — بحث وكارت المنتج
+// ══════════════════════════════════════
+let pcCurrentProduct = null;
+
+function pcSearch() {
+  const q = (document.getElementById('pc-search-inp').value || '').trim().toLowerCase();
+  const resBox = document.getElementById('pc-results');
+  if (!q) { resBox.style.display = 'none'; return; }
+  const catMap = {hair:'شعر',face:'وجه',body:'جسم',makeup:'ميك أب',women:'نسائي',care:'عناية'};
+  const matches = PRODUCTS.filter(p => {
+    const haystack = [
+      p.name, p.sku, p.description, p.cat, catMap[p.cat],
+      p.ingredients, p.usage, p.tips, p.info, p.badge, p.emoji
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(q);
+  });
+  if (!matches.length) {
+    resBox.style.display = 'block';
+    resBox.innerHTML = '<div style="padding:14px;text-align:center;color:var(--muted);font-size:.85rem">لا توجد نتائج مطابقة</div>';
+    return;
+  }
+  resBox.style.display = 'block';
+  resBox.innerHTML = matches.map(p => {
+    const qty = p.stock_qty ?? 0;
+    const qtyBadge = qty === 0 ? '❌ نفد' : qty <= 3 ? `⚠️ ${qty}` : `✅ ${qty}`;
+    const img = p.img_data ? `<img src="${p.img_data}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0">` : `<span style="font-size:1.5rem;flex-shrink:0">${p.emoji||'🧴'}</span>`;
+    return `<div class="pc-search-result-item" onclick="pcSelectProduct('${p.id}')">
+      ${img}
+      <div style="flex:1">
+        <div style="font-weight:700;color:var(--deep)">${p.name}</div>
+        <div style="font-size:.7rem;color:var(--muted)">${p.sku||'بدون كود'} | ${catMap[p.cat]||p.cat} | ${qtyBadge}</div>
+      </div>
+      <div style="font-weight:700;color:var(--pk);font-size:.9rem">${p.price||0} ج.م</div>
+    </div>`;
+  }).join('');
+}
+
+function pcClear() {
+  document.getElementById('pc-search-inp').value = '';
+  document.getElementById('pc-results').style.display = 'none';
+  document.getElementById('pc-card').style.display = 'none';
+  document.getElementById('pc-empty').style.display = 'block';
+  document.getElementById('pc-export-btn').style.display = 'none';
+  pcCurrentProduct = null;
+}
+
+async function pcSelectProduct(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  pcCurrentProduct = p;
+  document.getElementById('pc-results').style.display = 'none';
+  document.getElementById('pc-search-inp').value = p.name;
+
+  const catMap = {hair:'💇‍♀️ شعر',face:'✨ وجه',body:'🧴 جسم',makeup:'💄 ميك أب',women:'👸 نسائي',care:'🌿 عناية'};
+  const badgeMap = {new:'جديد ✨',sale:'خصم 🔥',best:'الأكثر مبيعاً ⭐'};
+  const salePrice = parseFloat(p.price) || 0;
+  const oldPrice  = parseFloat(p.old_price) || 0;
+  const cost      = parseFloat(p.cost) || 0;
+  const qty       = p.stock_qty ?? 0;
+  const disc      = (oldPrice > salePrice && oldPrice > 0) ? ((oldPrice - salePrice) / oldPrice * 100).toFixed(0) + '%' : '—';
+  const profitAmt = cost > 0 && salePrice > 0 ? (salePrice - cost).toFixed(2) + ' ج.م' : '—';
+  const profitPct = cost > 0 && salePrice > 0 ? (((salePrice - cost) / salePrice) * 100).toFixed(1) + '%' : '—';
+
+  // Image
+  const imgWrap = document.getElementById('pc-img-wrap');
+  imgWrap.innerHTML = p.img_data ? `<img src="${p.img_data}" style="width:100%;height:100%;object-fit:cover">` : p.emoji || '🧴';
+
+  // Header
+  document.getElementById('pc-cat-lbl').textContent = catMap[p.cat] || p.cat;
+  document.getElementById('pc-name').textContent = p.name;
+  document.getElementById('pc-sku-badge').textContent = p.sku ? '🏷 ' + p.sku : '— بدون كود';
+  const stockBadge = document.getElementById('pc-stock-badge');
+  stockBadge.textContent = qty === 0 ? '❌ نفد المخزون' : qty <= 3 ? `⚠️ كمية منخفضة (${qty})` : `✅ متاح (${qty})`;
+  stockBadge.style.background = qty === 0 ? '#f8d7da' : qty <= 3 ? '#fff3cd' : '#d4edda';
+  stockBadge.style.color      = qty === 0 ? '#721c24' : qty <= 3 ? '#856404' : '#155724';
+
+  // Prices
+  document.getElementById('pc-price-big').textContent = salePrice > 0 ? salePrice + ' ج.م' : '—';
+  document.getElementById('pc-old-price').textContent = oldPrice > 0 ? oldPrice + ' ج.م' : '';
+  const discBadge = document.getElementById('pc-discount-badge');
+  if (disc !== '—') { discBadge.textContent = '🔥 خصم ' + disc; discBadge.style.color = '#e84d8a'; } else { discBadge.textContent = ''; }
+
+  // Details
+  document.getElementById('pc-price').textContent = salePrice > 0 ? salePrice + ' ج.م' : '—';
+  document.getElementById('pc-old').textContent = oldPrice > 0 ? oldPrice + ' ج.م' : '—';
+  document.getElementById('pc-disc').textContent = disc;
+  document.getElementById('pc-cost').textContent = cost > 0 ? cost + ' ج.م' : '—';
+  document.getElementById('pc-profit').textContent = profitAmt;
+  document.getElementById('pc-profit-pct').textContent = profitPct;
+  document.getElementById('pc-qty').textContent = qty + ' قطعة';
+  document.getElementById('pc-status').textContent = qty === 0 ? '❌ نفد' : qty <= 3 ? '⚠️ منخفض' : '✅ متاح';
+  document.getElementById('pc-deposit').textContent = p.deposit ? p.deposit + ' ج.م' : '—';
+  document.getElementById('pc-cat').textContent = catMap[p.cat] || p.cat;
+  document.getElementById('pc-badge').textContent = badgeMap[p.badge] || p.badge || '—';
+  document.getElementById('pc-date').textContent = p.created_at ? new Date(p.created_at).toLocaleDateString('ar-EG') : '—';
+  document.getElementById('pc-desc').textContent = p.description || 'لا يوجد وصف';
+  document.getElementById('pc-ingr').textContent = p.ingredients || '—';
+  document.getElementById('pc-tips').textContent = p.tips || '—';
+  document.getElementById('pc-usage').textContent = p.usage || '—';
+
+  // Show card
+  document.getElementById('pc-empty').style.display = 'none';
+  document.getElementById('pc-card').style.display = 'block';
+  document.getElementById('pc-export-btn').style.display = 'inline-flex';
+
+  // Load order stats + customer notes async
+  pcLoadStats(p);
+}
+
+async function pcLoadStats(p) {
+  document.getElementById('pc-stat-orders').textContent = '⏳';
+  document.getElementById('pc-customer-notes').innerHTML = '<p style="text-align:center;color:var(--muted)">⏳ جارٍ تحميل الملاحظات...</p>';
+  try {
+    const orders = await sbGet('orders', 'select=id,items,created_at,notes,total');
+    let orderCount = 0, qtySold = 0, revenue = 0, profitTotal = 0;
+    const cost = parseFloat(p.cost) || 0;
+    const salePrice = parseFloat(p.price) || 0;
+    const customerNotes = [];
+
+    orders.forEach(o => {
+      let items = o.items;
+      if (typeof items === 'string') { try { items = JSON.parse(items); } catch(e) { items = []; } }
+      const found = (items || []).find(it => it.product_id === p.id || it.id === p.id || it.name === p.name);
+      if (found) {
+        orderCount++;
+        const q = parseInt(found.qty || found.quantity || 1);
+        const pr = parseFloat(found.price || salePrice);
+        qtySold += q;
+        revenue += q * pr;
+        if (cost > 0) profitTotal += q * (pr - cost);
+        if (o.notes && o.notes.trim()) {
+          customerNotes.push({ note: o.notes.trim(), date: o.created_at ? new Date(o.created_at).toLocaleDateString('ar-EG') : '' });
+        }
+      }
+    });
+
+    document.getElementById('pc-stat-orders').textContent = orderCount;
+    document.getElementById('pc-stat-qty-sold').textContent = qtySold + ' قطعة';
+    document.getElementById('pc-stat-revenue').textContent = revenue.toFixed(0) + ' ج.م';
+    document.getElementById('pc-stat-profit-total').textContent = cost > 0 ? profitTotal.toFixed(0) + ' ج.م' : '—';
+
+    const notesEl = document.getElementById('pc-customer-notes');
+    if (!customerNotes.length) {
+      notesEl.innerHTML = '<div style="text-align:center;color:var(--muted);padding:16px;font-size:.85rem">لا توجد ملاحظات عملاء مسجّلة لهذا المنتج</div>';
+    } else {
+      notesEl.innerHTML = customerNotes.map(n => `
+        <div class="pc-note-item">
+          <div>${n.note}</div>
+          <div class="pc-note-meta">📅 ${n.date}</div>
+        </div>`).join('');
+    }
+  } catch(e) {
+    document.getElementById('pc-stat-orders').textContent = '—';
+    document.getElementById('pc-customer-notes').innerHTML = '<div style="text-align:center;color:var(--muted);padding:16px;font-size:.85rem">تعذّر تحميل البيانات</div>';
+  }
+}
+
+function exportProductCardPDF() {
+  if (!pcCurrentProduct) return;
+  const p = pcCurrentProduct;
+  const catMap = {hair:'شعر',face:'وجه',body:'جسم',makeup:'ميك أب',women:'نسائي',care:'عناية'};
+  const salePrice = parseFloat(p.price) || 0;
+  const oldPrice  = parseFloat(p.old_price) || 0;
+  const cost      = parseFloat(p.cost) || 0;
+  const qty       = p.stock_qty ?? 0;
+  const disc      = (oldPrice > salePrice && oldPrice > 0) ? ((oldPrice - salePrice) / oldPrice * 100).toFixed(0) + '%' : '—';
+  const profitAmt = cost > 0 && salePrice > 0 ? (salePrice - cost).toFixed(2) + ' ج.م' : '—';
+  const profitPct = cost > 0 && salePrice > 0 ? (((salePrice - cost) / salePrice) * 100).toFixed(1) + '%' : '—';
+  const statusTxt = qty === 0 ? 'نفد المخزون' : qty <= 3 ? 'كمية منخفضة' : 'متاح';
+  const statOrders = document.getElementById('pc-stat-orders').textContent;
+  const statQty    = document.getElementById('pc-stat-qty-sold').textContent;
+  const statRev    = document.getElementById('pc-stat-revenue').textContent;
+  const statProfit = document.getElementById('pc-stat-profit-total').textContent;
+  const notesHTML  = document.getElementById('pc-customer-notes').innerHTML;
+  const imgTag = p.img_data ? `<img src="${p.img_data}" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:2px solid #d4a017">` : `<div style="width:120px;height:120px;border-radius:12px;background:#fde8f1;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:2px solid #ecd4e0">${p.emoji||'🧴'}</div>`;
+
+  const html = `<!DOCTYPE html><html lang="ar" dir="rtl">
+<head><meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&family=Playfair+Display:wght@700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Tajawal',Arial,sans-serif;background:#fff;color:#2c1020;direction:rtl;padding:24px;font-size:13px;}
+  .header{background:linear-gradient(135deg,#0d0608,#1a0b10,#4a0e28);color:#fff;border-radius:16px;padding:20px 24px;display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+  .h-cat{font-size:10px;color:#d4a017;letter-spacing:2px;font-weight:700;margin-bottom:4px;}
+  .h-name{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;margin-bottom:8px;}
+  .h-price{font-family:'Playfair Display',serif;font-size:1.8rem;color:#e84d8a;font-weight:700;}
+  .badge{display:inline-block;padding:2px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .box{background:#fdf4f8;border-radius:12px;padding:14px;border:1px solid #ecd4e0;}
+  .box h4{font-size:10px;color:#e84d8a;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+  .row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #ecd4e0;font-size:12px;}
+  .lbl{color:#7a5a6a;font-weight:600;} .val{font-weight:700;}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .stat{background:#fff;border-radius:10px;padding:12px;text-align:center;border:1px solid #ecd4e0;}
+  .snum{font-family:'Playfair Display',serif;font-size:1.3rem;color:#e84d8a;font-weight:700;}
+  .slbl{font-size:10px;color:#7a5a6a;margin-top:3px;}
+  .note{background:#fde8f1;border-right:3px solid #e84d8a;border-radius:6px;padding:7px 10px;margin-bottom:7px;font-size:12px;line-height:1.6;}
+  .footer{text-align:center;margin-top:16px;font-size:10px;color:#7a5a6a;border-top:1px solid #ecd4e0;padding-top:10px;}
+  @media print{body{padding:10px;}@page{margin:10mm;}}
+</style>
+</head>
+<body>
+<div class="header">
+  ${imgTag}
+  <div style="flex:1">
+    <div class="h-cat">${catMap[p.cat]||p.cat}</div>
+    <div class="h-name">${p.name}</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      ${p.sku ? `<span class="badge" style="background:rgba(212,160,23,.25);color:#d4a017;border:1px solid #d4a017">🏷 ${p.sku}</span>` : ''}
+      <span class="badge" style="background:${qty===0?'#f8d7da':qty<=3?'#fff3cd':'#d4edda'};color:${qty===0?'#721c24':qty<=3?'#856404':'#155724'}">${statusTxt}</span>
+    </div>
+  </div>
+  <div style="text-align:center">
+    <div class="h-price">${salePrice > 0 ? salePrice + ' ج.م' : '—'}</div>
+    ${oldPrice > 0 ? `<div style="color:#aaa;text-decoration:line-through;font-size:12px">${oldPrice} ج.م</div>` : ''}
+    ${disc !== '—' ? `<div style="color:#e84d8a;font-size:11px;font-weight:700;margin-top:3px">خصم ${disc}</div>` : ''}
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="box">
+    <h4>💰 التسعير والمخزون</h4>
+    <div class="row"><span class="lbl">سعر البيع</span><span class="val" style="color:#e84d8a">${salePrice||'—'} ج.م</span></div>
+    <div class="row"><span class="lbl">سعر قبل الخصم</span><span class="val">${oldPrice||'—'} ج.م</span></div>
+    <div class="row"><span class="lbl">نسبة الخصم</span><span class="val" style="color:#d4a017">${disc}</span></div>
+    <div class="row"><span class="lbl">سعر الشراء</span><span class="val">${cost||'—'} ج.م</span></div>
+    <div class="row"><span class="lbl">هامش الربح</span><span class="val" style="color:#27ae60">${profitAmt}</span></div>
+    <div class="row"><span class="lbl">نسبة الربح</span><span class="val" style="color:#27ae60">${profitPct}</span></div>
+    <div class="row"><span class="lbl">الكمية الحالية</span><span class="val" style="font-size:1rem">${qty} قطعة</span></div>
+    <div class="row"><span class="lbl">العربون</span><span class="val">${p.deposit||'—'}</span></div>
+  </div>
+  <div class="box">
+    <h4>📋 تفاصيل المنتج</h4>
+    <div class="row"><span class="lbl">القسم</span><span class="val">${catMap[p.cat]||p.cat}</span></div>
+    <div class="row"><span class="lbl">الكود SKU</span><span class="val">${p.sku||'—'}</span></div>
+    <div class="row"><span class="lbl">تاريخ الإضافة</span><span class="val">${p.created_at ? new Date(p.created_at).toLocaleDateString('ar-EG') : '—'}</span></div>
+    ${p.description ? `<div style="margin-top:8px;font-size:12px;line-height:1.7;color:#2c1020"><strong>الوصف:</strong> ${p.description}</div>` : ''}
+    ${p.ingredients ? `<div style="margin-top:6px;font-size:12px;line-height:1.7;color:#2c1020"><strong>المكونات:</strong> ${p.ingredients}</div>` : ''}
+  </div>
+</div>
+
+${p.tips || p.usage ? `<div class="grid2">
+  ${p.tips ? `<div class="box"><h4>✨ نصائح الاستخدام</h4><div style="font-size:12px;line-height:1.8">${p.tips}</div></div>` : '<div></div>'}
+  ${p.usage ? `<div class="box"><h4>📖 طريقة الاستخدام</h4><div style="font-size:12px;line-height:1.8">${p.usage}</div></div>` : '<div></div>'}
+</div>` : ''}
+
+<div class="stats">
+  <div class="stat"><div class="snum">${statOrders}</div><div class="slbl">مرات الطلب</div></div>
+  <div class="stat"><div class="snum">${statQty}</div><div class="slbl">إجمالي المباع</div></div>
+  <div class="stat"><div class="snum">${statRev}</div><div class="slbl">إجمالي الإيراد</div></div>
+  <div class="stat"><div class="snum">${statProfit}</div><div class="slbl">إجمالي الأرباح</div></div>
+</div>
+
+<div class="box" style="margin-bottom:0">
+  <h4>💬 ملاحظات العملاء</h4>
+  ${notesHTML}
+</div>
+
+<div class="footer">🌹 October Rose 6 — Make Up & Cosmetics | تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')} | ${p.name}</div>
+<script>window.onload=()=>{setTimeout(()=>window.print(),400);}<\/script>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { toast('⚠️ يرجى السماح بالنوافذ المنبثقة لتصدير PDF'); return; }
+  win.document.write(html);
+  win.document.close();
+}
+
+
 // ══════════════════════════════════════
 /*
 CREATE TABLE purchase_orders (
@@ -5798,6 +6392,75 @@ async function deleteTreasuryEntry(id) {
   if (!confirm('حذف هذا القيد من الخزينة؟')) return;
   try { await sbDelete('treasury', id); toast('تم الحذف'); loadTreasury(); } catch(e) { toast('⚠️ خطأ في الحذف'); }
 }
+
+window.addEventListener('DOMContentLoaded', init);
+
+// ══════════════════════════════════════
+// 📱 معالجة أرقام الهواتف المصرية تلقائياً
+// ══════════════════════════════════════
+function formatEgyptPhone(phoneInput) {
+  // إزالة أي أحرف غير رقمية
+  let phone = phoneInput.replace(/\D/g, '');
+  
+  // إزالة الكود الدولي إذا كان موجوداً
+  if (phone.startsWith('20')) {
+    phone = phone.substring(2);
+  }
+  
+  // إزالة الصفر الأول إذا كان موجوداً
+  if (phone.startsWith('0')) {
+    phone = phone.substring(1);
+  }
+  
+  return phone;
+}
+
+function getFullEgyptPhone(phoneInput) {
+  const cleaned = formatEgyptPhone(phoneInput);
+  // التحقق من صحة الرقم (يجب أن يبدأ بـ 10، 11، 12، أو 15 ويكون 10 أرقام)
+  if (cleaned.length === 10 && /^(10|11|12|15)/.test(cleaned)) {
+    return '+20' + cleaned;
+  }
+  return null;
+}
+
+// إضافة مستمع للأحداث لجميع حقول الهاتف
+document.addEventListener('DOMContentLoaded', function() {
+  const phoneInputs = document.querySelectorAll('input[type="tel"]');
+  
+  phoneInputs.forEach(input => {
+    // منع إدخال أي شيء غير الأرقام
+    input.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      
+      // إزالة الكود الدولي تلقائياً
+      if (value.startsWith('20')) {
+        value = value.substring(2);
+      }
+      
+      // إزالة الصفر الأول تلقائياً
+      if (value.startsWith('0')) {
+        value = value.substring(1);
+      }
+      
+      // تحديد الطول الأقصى بـ 10 أرقام
+      if (value.length > 10) {
+        value = value.substring(0, 10);
+      }
+      
+      e.target.value = value;
+    });
+    
+    // عرض رقم الهاتف الكامل عند فقدان التركيز
+    input.addEventListener('blur', function(e) {
+      const value = e.target.value;
+      if (value && value.length === 10) {
+        // يمكنك عرض رسالة أو tooltip هنا
+        console.log('الرقم الكامل: +20' + value);
+      }
+    });
+  });
+});
 
 window.addEventListener('DOMContentLoaded', init);
 
