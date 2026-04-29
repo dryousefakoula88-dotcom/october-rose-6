@@ -2690,15 +2690,15 @@ function renderProds(filter = 'all') {
   if (!list.length) { g.innerHTML = '<p class="no-prods">لا توجد منتجات في هذه الفئة حتى الآن</p>'; return; }
 
   g.innerHTML = list.map(p => `
-    <div class="prod-card ${p.in_stock===false?'out-of-stock':''}" onclick="openDetail(${p.id})">
+    <div class="prod-card ${p.in_stock===false?'out-of-stock':''}" onclick="openDetail('${p.id}')">
       ${p.badge ? `<span class="p-badge bg-${p.badge}">${bdgLabel(p.badge)}</span>` : ''}
       <span class="stock-tag ${p.in_stock===false?'tag-out':'tag-in'}">${p.in_stock===false?'نفذت الكمية ❌':'متاح ✅'}</span>
       <div class="p-img-wrap">
         ${p.img_data ? `<img src="${p.img_data}" alt="${p.name}" loading="lazy" decoding="async">` : `<div class="p-emoji">${p.emoji||'🧴'}</div>`}
         <div class="p-hover-btns">
-          <button class="p-hbtn" onclick="ev(event);addCart(${p.id})" title="أضفي للسلة" ${p.in_stock===false?'disabled style="opacity:.4;cursor:not-allowed"':''}>🛒</button>
-          ${canEdit ? `<button class="p-hbtn del-btn" onclick="ev(event);delProd(${p.id})">🗑</button>` : ''}
-          ${canEdit ? `<button class="p-hbtn stock-btn" onclick="ev(event);toggleStock(${p.id})" title="${p.in_stock===false?'تفعيل':'إيقاف'}" style="background:${p.in_stock===false?'#27ae60':'#e67e22'};color:#fff">${p.in_stock===false?'✅':'⚠️'}</button>` : ''}
+          <button class="p-hbtn" onclick="ev(event);addCart('${p.id}')" title="أضفي للسلة" ${p.in_stock===false?'disabled style="opacity:.4;cursor:not-allowed"':''}>🛒</button>
+          ${canEdit ? `<button class="p-hbtn del-btn" onclick="ev(event);delProd('${p.id}')">🗑</button>` : ''}
+          ${canEdit ? `<button class="p-hbtn stock-btn" onclick="ev(event);toggleStock('${p.id}')" title="${p.in_stock===false?'تفعيل':'إيقاف'}" style="background:${p.in_stock===false?'#27ae60':'#e67e22'};color:#fff">${p.in_stock===false?'✅':'⚠️'}</button>` : ''}
         </div>
       </div>
       <div class="p-body">
@@ -2711,7 +2711,7 @@ function renderProds(filter = 'all') {
             ${p.old_price ? `<span class="p-old">${p.old_price} ج.م</span>` : ''}
             ${p.price_tbd ? `<span style="color:var(--pk);font-size:.82rem;font-weight:700">📞 اتصلي للسعر</span>` : `${p.price||''} ج.م`}
           </div>
-          <button class="p-add" onclick="ev(event);addCart(${p.id})" ${p.in_stock===false?'disabled style="opacity:.4;background:#ccc;cursor:not-allowed"':''}>
+          <button class="p-add" onclick="ev(event);addCart('${p.id}')" ${p.in_stock===false?'disabled style="opacity:.4;background:#ccc;cursor:not-allowed"':''}>
             ${p.in_stock===false?'نفذت الكمية':'+ السلة'}
           </button>
         </div>
@@ -2747,7 +2747,7 @@ async function delProd(id) {
   if (!confirm('حذف هذا المنتج؟')) return;
   try {
     await sbDelete('products', id);
-    PRODUCTS = PRODUCTS.filter(p => p.id !== id);
+    PRODUCTS = PRODUCTS.filter(p => String(p.id) !== String(id));
     saveLocal('products', PRODUCTS);
     renderProds(curFilter); renderCats();
     document.getElementById('stat-n').textContent = PRODUCTS.length;
@@ -2757,7 +2757,7 @@ async function delProd(id) {
 
 async function toggleStock(id) {
   if (!currentUser || !['manager','sales'].includes(currentUser.role)) return;
-  const p = PRODUCTS.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id));
   if (!p) return;
   const newStock = p.in_stock === false ? true : false;
   try {
@@ -2881,7 +2881,7 @@ function formatDesc(text) {
 }
 
 function openDetail(id) {
-  const p = PRODUCTS.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id));
   if (!p) return;
   openProdId = id;
 
@@ -3158,7 +3158,7 @@ async function toggleStockFromDetail() {
 
 // ══ RESERVATION / DEPOSIT ══
 function openReserveModal() {
-  const p = PRODUCTS.find(x => x.id === openProdId);
+  const p = PRODUCTS.find(x => String(x.id) === String(openProdId));
   if (!p || !p.deposit) return;
   document.getElementById('rsv-title').textContent = '🔒 حجز: ' + p.name;
   document.getElementById('rsv-desc').textContent =
@@ -3182,7 +3182,7 @@ async function submitReservation() {
     return; 
   }
   
-  const p = PRODUCTS.find(x => x.id === openProdId);
+  const p = PRODUCTS.find(x => String(x.id) === String(openProdId));
   if (!p) return;
 
   // Save reservation as special order in DB
@@ -3207,7 +3207,7 @@ async function submitReservation() {
 }
 
 function calcProfit() {
-  const p = PRODUCTS.find(x => x.id === openProdId);
+  const p = PRODUCTS.find(x => String(x.id) === String(openProdId));
   const price = p ? parseFloat(p.price) : 0;
   const cost = parseFloat(document.getElementById('d-cost')?.value) || 0;
   const profitVal = document.getElementById('profit-val');
@@ -3257,7 +3257,7 @@ async function saveDetail() {
   };
   try {
     await sbPatch('products', openProdId, updates);
-    const idx = PRODUCTS.findIndex(x => x.id === openProdId);
+    const idx = PRODUCTS.findIndex(x => String(x.id) === String(openProdId));
     if (idx !== -1) PRODUCTS[idx] = { ...PRODUCTS[idx], ...updates };
     saveLocal('products', PRODUCTS);
     renderProds(curFilter); renderCats();
@@ -3353,14 +3353,14 @@ async function saveNewProd() {
 // CART
 // ══════════════════════════════════════
 function addCart(id) {
-  const p = PRODUCTS.find(x => x.id === id); if (!p) return;
-  const ex = cart.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id)); if (!p) return;
+  const ex = cart.find(x => String(x.id) === String(id));
   if (ex) ex.qty++; else cart.push({...p, qty:1});
   updBdg(); toast(`✦ تمت إضافة "${p.name}"`);
 }
-function remFromCart(id) { cart = cart.filter(x => x.id !== id); updBdg(); renderCart(); }
+function remFromCart(id) { cart = cart.filter(x => String(x.id) !== String(id)); updBdg(); renderCart(); }
 function chQty(id, d) {
-  const i = cart.find(x => x.id === id);
+  const i = cart.find(x => String(x.id) === String(id));
   if (i) { i.qty += d; if (i.qty <= 0) remFromCart(id); else { updBdg(); renderCart(); } }
 }
 function updBdg() { document.getElementById('cart-bdg').textContent = cart.reduce((s,i) => s + i.qty, 0); }
@@ -3383,12 +3383,12 @@ function renderCart() {
         <div class="ci-c">${catName(i.cat)}</div>
         <div class="ci-p">${i.price * i.qty} ج.م</div>
         <div class="ci-qty-row">
-          <button class="q-btn" onclick="chQty(${i.id},-1)">−</button>
+          <button class="q-btn" onclick="chQty('${i.id}',-1)">−</button>
           <span class="q-n">${i.qty}</span>
-          <button class="q-btn" onclick="chQty(${i.id},1)">+</button>
+          <button class="q-btn" onclick="chQty('${i.id}',1)">+</button>
         </div>
       </div>
-      <button class="ci-rm" onclick="remFromCart(${i.id})">🗑</button>
+      <button class="ci-rm" onclick="remFromCart('${i.id}')">🗑</button>
     </div>`).join('');
   document.getElementById('cs-total').textContent = cart.reduce((s,i) => s + i.price*i.qty, 0) + ' ج.م';
 }
@@ -3505,7 +3505,7 @@ function renderOrdersBody(body, filterStatus='') {
         <span class="order-date">🕐 ${dateStr}</span>
         ${!canHideRevenue ? `<span class="order-total">${o.total} ج.م</span>` : ''}
         <select class="order-status ${statusCls(o.status)}" onchange="updateOrderStatus(${o.id},this.value,this)">${statusOpts}</select>
-        ${canDel ? `<button class="manager-del-order" onclick="delOrder(${o.id})">🗑</button>` : ''}
+        ${canDel ? `<button class="manager-del-order" onclick="delOrder('${o.id}')">🗑</button>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:4px;margin:6px 0">${tlHtml}</div>
       <div class="order-items">🛍 ${itemsHtml}${o.deposit?` | 🔒 عربون: ${o.deposit} ج.م`:''}</div>
@@ -3782,7 +3782,7 @@ function renderStaffList() {
         <div class="staff-role"><span class="role-badge ${roleClass[s.role]||'rb-orders'}">${roleMap[s.role]||s.role}</span></div>
         <div class="staff-email">@${s.username}</div>
       </div>
-      ${isManager ? `<button class="del-staff-btn" onclick="delStaff(${s.id})">🗑 حذف</button>` : ''}
+      ${isManager ? `<button class="del-staff-btn" onclick="delStaff('${s.id}')">🗑 حذف</button>` : ''}
     </div>`).join('');
 }
 function openAddStaff() { if(currentUser?.role==='manager') openMod('add-staff-modal'); }
@@ -3898,8 +3898,8 @@ async function loadUsersList() {
           <td style="padding:11px 14px;color:var(--muted);font-family:monospace">@${s.username}</td>
           <td style="padding:11px 14px;text-align:center"><span style="background:${roleColor[s.role]||'#666'}22;color:${roleColor[s.role]||'#666'};border:1px solid ${roleColor[s.role]||'#666'}44;border-radius:20px;padding:3px 12px;font-size:.75rem;font-weight:700">${roleMap[s.role]||s.role}</span></td>
           <td style="padding:11px 14px;text-align:center">
-            <button onclick="openEditUserModal(${s.id})" style="background:rgba(212,160,23,.15);color:#7a5000;border:1px solid rgba(212,160,23,.4);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer;margin-left:6px">✏️ تعديل</button>
-            <button onclick="deleteUser(${s.id},'${(s.name||s.username).replace(/'/g,'')}')" style="background:rgba(231,76,60,.1);color:#c0392b;border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer">🗑 حذف</button>
+            <button onclick="openEditUserModal('${s.id}')" style="background:rgba(212,160,23,.15);color:#7a5000;border:1px solid rgba(212,160,23,.4);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer;margin-left:6px">✏️ تعديل</button>
+            <button onclick="deleteUser('${s.id}','${(s.name||s.username).replace(/'/g,'')}')" style="background:rgba(231,76,60,.1);color:#c0392b;border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer">🗑 حذف</button>
           </td>
         </tr>`).join('')}
       </tbody>
@@ -4370,7 +4370,7 @@ function pcClear() {
 }
 
 async function pcSelectProduct(id) {
-  const p = PRODUCTS.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id));
   if (!p) return;
   pcCurrentProduct = p;
   document.getElementById('pc-results').style.display = 'none';
@@ -5050,9 +5050,9 @@ async function loadPOList() {
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <span style="font-weight:700;color:var(--pk);font-size:.95rem">${(po.total||0).toFixed(2)} ج.م</span>
-            <button onclick="editPO(${po.id})" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
-            <button onclick="reprintPO(${po.id})" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
-            <button onclick="deletePORec(${po.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+            <button onclick="editPO('${po.id}')" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
+            <button onclick="reprintPO('${po.id}')" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
+            <button onclick="deletePORec('${po.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
           </div>
         </div>
         <div style="font-size:.8rem;color:var(--muted)">🏪 ${po.supplier||'—'} ${po.supplier_phone?'| 📞 '+po.supplier_phone:''}</div>
@@ -5142,9 +5142,9 @@ async function loadInvList() {
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <span style="font-weight:700;color:var(--pk);font-size:.95rem">${(inv.total||0).toFixed(2)} ج.م</span>
-            <button onclick="editInv(${inv.id})" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
-            <button onclick="reprintInv(${inv.id})" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
-            <button onclick="deleteInvRec(${inv.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+            <button onclick="editInv('${inv.id}')" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
+            <button onclick="reprintInv('${inv.id}')" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
+            <button onclick="deleteInvRec('${inv.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
           </div>
         </div>
         <div style="font-size:.8rem;color:var(--muted)">👤 ${inv.client||'—'} ${inv.client_phone?'| 📞 '+inv.client_phone:''}</div>
@@ -6106,8 +6106,8 @@ async function loadPiList() {
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <span style="font-weight:700;color:var(--pk);font-size:.95rem">${(pi.total||0).toFixed(2)} ج.م</span>
-            <button onclick="reprintPI(${pi.id})" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
-            <button onclick="deletePiRec(${pi.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+            <button onclick="reprintPI('${pi.id}')" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
+            <button onclick="deletePiRec('${pi.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
           </div>
         </div>
         <div style="font-size:.8rem;color:var(--muted)">🏪 ${pi.supplier||'—'} ${pi.supplier_phone?'| 📞 '+pi.supplier_phone:''}</div>
@@ -6274,8 +6274,8 @@ async function loadSupplierList() {
           ${s.email?`<span style="font-size:.78rem;color:var(--muted)">📧 ${s.email}</span>`:''}
         </div>
         <div style="display:flex;gap:6px">
-          <button onclick="editSupplier(${s.id})" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
-          <button onclick="deleteSupplier(${s.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+          <button onclick="editSupplier('${s.id}')" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
+          <button onclick="deleteSupplier('${s.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
         </div>
       </div>
       ${s.address?`<div style="font-size:.78rem;color:var(--muted);margin-top:6px">📍 ${s.address}</div>`:''}
@@ -6285,7 +6285,7 @@ async function loadSupplierList() {
 }
 
 async function editSupplier(id) {
-  const s = window._SUPPLIERS.find(x => x.id === id);
+  const s = window._SUPPLIERS.find(x => String(x.id) === String(id));
   if (!s) return;
   document.getElementById('supplier-add-form').style.display = '';
   document.getElementById('sup-edit-id').value = s.id;
@@ -6367,7 +6367,7 @@ async function loadTreasury() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-weight:800;font-size:1rem;color:${isIncome?'#155724':'#721c24'}">${isIncome?'+':'−'}${parseFloat(tr.amount).toFixed(2)} ج.م</span>
-          <button onclick="deleteTreasuryEntry(${tr.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:8px;padding:2px 8px;font-size:.72rem;cursor:pointer">🗑</button>
+          <button onclick="deleteTreasuryEntry('${tr.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:8px;padding:2px 8px;font-size:.72rem;cursor:pointer">🗑</button>
         </div>
       </div>`;
     }).join('');
