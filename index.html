@@ -183,8 +183,8 @@ body.staff-sales .p-hbtn.del-btn,body.manager .p-hbtn.del-btn{display:flex;}
 .p-old{font-size:.75rem;color:#bbb;text-decoration:line-through;display:block;}
 .p-add{background:var(--deep);color:var(--gd);border:none;padding:6px 13px;border-radius:20px;font-size:.78rem;font-weight:600;transition:.22s;}
 .p-add:hover{background:var(--pk);color:#fff;}
-.p-wa-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;background:#25D366;color:#fff;border:none;padding:7px 10px;border-radius:20px;font-size:.78rem;font-weight:700;font-family:'Tajawal',sans-serif;transition:.22s;text-decoration:none;}
-.p-wa-btn:hover{background:#1ebe5d;transform:scale(1.02);}
+.p-wa-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;background:#25D366;color:#fff;border:none;padding:8px 10px;border-radius:20px;font-size:.8rem;font-weight:700;font-family:'Tajawal',sans-serif;transition:.22s;text-decoration:none;cursor:pointer;}
+.p-wa-btn:hover{background:#1ebe5d;transform:scale(1.02);color:#fff;}
 .p-wa-btn svg{width:15px;height:15px;flex-shrink:0;}
 .no-prods{grid-column:1/-1;text-align:center;padding:50px;color:var(--muted);}
 
@@ -883,6 +883,13 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
     margin:0 !important;
     width:100% !important;
     animation:slideUpSheet .28s cubic-bezier(.4,0,.2,1) !important;
+  }
+  #add-prod-modal .m-box{
+    padding:0 !important;
+    overflow:hidden !important;
+    display:flex !important;
+    flex-direction:column !important;
+    border-radius:22px 22px 0 0 !important;
   }
 
   /* ── ORDERS PANEL ── */
@@ -1888,15 +1895,46 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
               <!-- Col 1: Pricing & Stock -->
               <div style="padding:18px 20px;border-left:1px solid var(--border2)">
                 <h4 style="font-size:.78rem;color:var(--pk);font-weight:700;letter-spacing:1.5px;margin-bottom:12px;text-transform:uppercase">💰 التسعير والمخزون</h4>
-                <div class="pc-row"><span class="pc-lbl">سعر البيع</span><span id="pc-price" class="pc-val pc-pink"></span></div>
-                <div class="pc-row"><span class="pc-lbl">سعر قبل الخصم</span><span id="pc-old" class="pc-val"></span></div>
-                <div class="pc-row"><span class="pc-lbl">نسبة الخصم</span><span id="pc-disc" class="pc-val pc-gold"></span></div>
-                <div class="pc-row"><span class="pc-lbl">سعر الشراء</span><span id="pc-cost" class="pc-val"></span></div>
-                <div class="pc-row"><span class="pc-lbl">هامش الربح</span><span id="pc-profit" class="pc-val pc-green"></span></div>
-                <div class="pc-row"><span class="pc-lbl">نسبة الربح</span><span id="pc-profit-pct" class="pc-val pc-green"></span></div>
-                <div class="pc-row" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)"><span class="pc-lbl">الكمية الحالية</span><span id="pc-qty" class="pc-val" style="font-size:1.1rem;font-weight:800"></span></div>
-                <div class="pc-row"><span class="pc-lbl">الحالة</span><span id="pc-status" class="pc-val"></span></div>
-                <div class="pc-row"><span class="pc-lbl">العربون</span><span id="pc-deposit" class="pc-val"></span></div>
+
+                <!-- View Mode -->
+                <div id="pc-view-prices">
+                  <div class="pc-row"><span class="pc-lbl">سعر البيع</span><span id="pc-price" class="pc-val pc-pink"></span></div>
+                  <div class="pc-row"><span class="pc-lbl">سعر قبل الخصم</span><span id="pc-old" class="pc-val"></span></div>
+                  <div class="pc-row"><span class="pc-lbl">نسبة الخصم</span><span id="pc-disc" class="pc-val pc-gold"></span></div>
+                  <div class="pc-row"><span class="pc-lbl">سعر الشراء</span><span id="pc-cost" class="pc-val"></span></div>
+                  <div class="pc-row"><span class="pc-lbl">هامش الربح</span><span id="pc-profit" class="pc-val pc-green"></span></div>
+                  <div class="pc-row"><span class="pc-lbl">نسبة الربح</span><span id="pc-profit-pct" class="pc-val pc-green"></span></div>
+                  <div class="pc-row" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)"><span class="pc-lbl">الكمية الحالية</span><span id="pc-qty" class="pc-val" style="font-size:1.1rem;font-weight:800"></span></div>
+                  <div class="pc-row"><span class="pc-lbl">الحالة</span><span id="pc-status" class="pc-val"></span></div>
+                  <div class="pc-row"><span class="pc-lbl">العربون</span><span id="pc-deposit" class="pc-val"></span></div>
+                  <button onclick="pcToggleEditPrices()" style="margin-top:12px;width:100%;background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;border:none;border-radius:12px;padding:8px 0;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif">✏️ تعديل الأسعار والكمية</button>
+                </div>
+
+                <!-- Edit Mode -->
+                <div id="pc-edit-prices" style="display:none">
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <label style="font-size:.75rem;font-weight:700;color:var(--muted)">سعر البيع (ج.م)</label>
+                    <input id="pc-inp-price" type="number" min="0" step="0.5" oninput="pcProfitPreview()" style="border:2px solid var(--pk);border-radius:10px;padding:7px 12px;font-size:.9rem;font-family:'Tajawal',sans-serif;outline:none;width:100%;color:var(--deep)">
+                    <label style="font-size:.75rem;font-weight:700;color:var(--muted)">سعر قبل الخصم (ج.م)</label>
+                    <input id="pc-inp-old" type="number" min="0" step="0.5" oninput="pcProfitPreview()" style="border:2px solid var(--border);border-radius:10px;padding:7px 12px;font-size:.9rem;font-family:'Tajawal',sans-serif;outline:none;width:100%;color:var(--deep)" onfocus="this.style.borderColor='var(--pk)'" onblur="this.style.borderColor='var(--border)'">
+                    <label style="font-size:.75rem;font-weight:700;color:var(--muted)">سعر الشراء / التكلفة (ج.م)</label>
+                    <input id="pc-inp-cost" type="number" min="0" step="0.5" oninput="pcProfitPreview()" style="border:2px solid var(--border);border-radius:10px;padding:7px 12px;font-size:.9rem;font-family:'Tajawal',sans-serif;outline:none;width:100%;color:var(--deep)" onfocus="this.style.borderColor='var(--pk)'" onblur="this.style.borderColor='var(--border)'">
+                    <label style="font-size:.75rem;font-weight:700;color:var(--muted)">العربون (ج.م)</label>
+                    <input id="pc-inp-deposit" type="number" min="0" step="0.5" style="border:2px solid var(--border);border-radius:10px;padding:7px 12px;font-size:.9rem;font-family:'Tajawal',sans-serif;outline:none;width:100%;color:var(--deep)" onfocus="this.style.borderColor='var(--pk)'" onblur="this.style.borderColor='var(--border)'">
+                    <label style="font-size:.75rem;font-weight:700;color:var(--muted)">الكمية في المخزون</label>
+                    <input id="pc-inp-qty" type="number" min="0" step="1" style="border:2px solid var(--border);border-radius:10px;padding:7px 12px;font-size:.9rem;font-family:'Tajawal',sans-serif;outline:none;width:100%;color:var(--deep)" onfocus="this.style.borderColor='var(--pk)'" onblur="this.style.borderColor='var(--border)'">
+                    <!-- Live profit preview -->
+                    <div id="pc-profit-preview" style="background:linear-gradient(135deg,#e8f8ee,#fff9e6);border:1px solid #a8d5b5;border-radius:10px;padding:8px 12px;font-size:.78rem;display:none">
+                      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">هامش الربح:</span><span id="pc-prev-profit" style="color:#27ae60;font-weight:700"></span></div>
+                      <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="color:var(--muted)">نسبة الربح:</span><span id="pc-prev-pct" style="color:#27ae60;font-weight:700"></span></div>
+                      <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="color:var(--muted)">نسبة الخصم:</span><span id="pc-prev-disc" style="color:var(--gd2);font-weight:700"></span></div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:4px">
+                      <button onclick="pcSavePrices()" style="flex:1;background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;border:none;border-radius:12px;padding:9px 0;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif">💾 حفظ في قاعدة البيانات</button>
+                      <button onclick="pcToggleEditPrices()" style="background:var(--pk-pale);color:var(--pk);border:1.5px solid var(--pk);border-radius:12px;padding:9px 14px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif">✕</button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Col 2: Details -->
@@ -2113,60 +2151,463 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
 </div>
 
 <!-- ADD PRODUCT MODAL -->
+<!-- ADD PRODUCT MODAL — REDESIGNED v2 -->
+<style>
+/* ══ ADD PRODUCT MODAL — CUSTOM STYLES ══ */
+#add-prod-modal .m-box{
+  max-width:580px;
+  padding:0;
+  border-radius:22px;
+  overflow:hidden;
+  background:var(--cream);
+  display:flex !important;
+  flex-direction:column !important;
+  max-height:92vh !important;
+}
+.np-header{
+  background:linear-gradient(135deg,var(--dark) 0%,#3d0a22 100%);
+  padding:20px 26px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.np-header h3{
+  font-family:'Playfair Display',serif;
+  font-size:1.25rem;color:#fff;margin:0;
+  display:flex;align-items:center;gap:8px;
+}
+.np-header h3 span.np-star{color:var(--gd);}
+.np-close-btn{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:#c4a0b4;border-radius:50%;width:34px;height:34px;
+  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:.2s;flex-shrink:0;
+}
+.np-close-btn:hover{background:var(--pk);color:#fff;border-color:var(--pk);}
+
+/* ── STEP TABS ── */
+.np-steps{
+  display:flex;border-bottom:2px solid var(--border);
+  background:#fff;overflow-x:auto;scrollbar-width:none;direction:rtl;
+}
+.np-steps::-webkit-scrollbar{display:none;}
+.np-step-btn{
+  flex:1;min-width:80px;padding:11px 8px;font-size:.78rem;font-weight:700;
+  color:var(--muted);background:transparent;border:none;
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+  cursor:pointer;transition:.2s;white-space:nowrap;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-family:'Tajawal',sans-serif;
+}
+.np-step-btn .np-step-ico{font-size:1.1rem;}
+.np-step-btn:hover{color:var(--pk);background:var(--pk-pale);}
+.np-step-btn.ac{color:var(--pk);border-bottom-color:var(--pk);background:var(--pk-pale);}
+.np-step-btn .np-step-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--border);margin-top:2px;transition:.2s;
+}
+.np-step-btn.done .np-step-dot{background:var(--success);}
+.np-step-btn.ac .np-step-dot{background:var(--pk);}
+
+/* ── PANELS ── */
+.np-panel{display:none;padding:20px 24px 8px;}
+.np-panel.ac{display:block;}
+
+/* ── SECTION LABEL ── */
+.np-sec-lbl{
+  font-size:.72rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--pk);margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.np-sec-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(to left,transparent,var(--border));}
+
+/* ── FIELDS ── */
+.np-field{margin-bottom:13px;}
+.np-field label{
+  display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px;font-weight:700;
+}
+.np-field input,.np-field select,.np-field textarea{
+  width:100%;padding:9px 13px;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-size:.87rem;color:var(--deep);background:#fff;
+  outline:none;transition:.2s;font-family:'Tajawal',sans-serif;
+}
+.np-field input:focus,.np-field select:focus,.np-field textarea:focus{
+  border-color:var(--pk);box-shadow:0 0 0 3px rgba(232,77,138,.1);
+}
+.np-field textarea{resize:vertical;min-height:72px;}
+.np-field .np-hint{font-size:.7rem;color:var(--muted);margin-top:4px;}
+
+/* ── EMOJI PICKER FIELD ── */
+.np-emoji-wrap{display:flex;gap:8px;align-items:center;}
+.np-emoji-display{
+  width:50px;height:50px;border-radius:12px;border:2px solid var(--border);
+  background:var(--pk-pale);display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;flex-shrink:0;cursor:pointer;transition:.2s;
+}
+.np-emoji-display:hover{border-color:var(--pk);transform:scale(1.05);}
+.np-emoji-display input{
+  opacity:0;position:absolute;width:50px;height:50px;cursor:pointer;
+}
+
+/* ── 2-COL GRID ── */
+.np-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ── PRICE CARD ── */
+.np-price-card{
+  background:linear-gradient(135deg,rgba(212,160,23,.07),rgba(212,160,23,.03));
+  border:1.5px solid rgba(212,160,23,.3);border-radius:12px;
+  padding:14px;margin-bottom:13px;
+}
+.np-price-card-title{
+  font-size:.75rem;font-weight:800;color:#7a5000;
+  display:flex;align-items:center;gap:5px;margin-bottom:10px;
+}
+.np-price-card .np-grid .np-field{margin-bottom:0;}
+
+/* ── CHECKBOX ROW ── */
+.np-check-row{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 13px;background:#fff;border:1.5px solid var(--border);
+  border-radius:10px;cursor:pointer;margin-bottom:13px;transition:.2s;
+}
+.np-check-row:hover{border-color:var(--pk);background:var(--pk-pale);}
+.np-check-row input[type=checkbox]{width:17px;height:17px;accent-color:var(--pk);flex-shrink:0;}
+.np-check-row span{font-size:.83rem;color:var(--muted);font-weight:600;}
+
+/* ── IMAGE UPLOAD ZONE ── */
+.np-img-zone{
+  border:2px dashed var(--border);border-radius:12px;
+  padding:18px;text-align:center;cursor:pointer;
+  transition:.2s;background:#fff;margin-bottom:10px;
+}
+.np-img-zone:hover{border-color:var(--pk);background:var(--pk-pale);}
+.np-img-zone .niz-ico{font-size:2rem;margin-bottom:6px;}
+.np-img-zone .niz-txt{font-size:.8rem;color:var(--muted);font-weight:600;}
+.np-img-zone .niz-sub{font-size:.7rem;color:var(--muted);margin-top:3px;}
+
+/* ── BADGE SELECTOR ── */
+.np-badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px;}
+.np-badge-opt{
+  padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:#fff;font-size:.78rem;font-weight:700;cursor:pointer;
+  transition:.2s;color:var(--muted);
+}
+.np-badge-opt:hover{border-color:var(--pk);color:var(--pk);}
+.np-badge-opt.sel-none.active{background:var(--deep);border-color:var(--deep);color:var(--gd);}
+.np-badge-opt.sel-new.active{background:var(--gd);border-color:var(--gd);color:var(--dark);}
+.np-badge-opt.sel-sale.active{background:var(--pk);border-color:var(--pk);color:#fff;}
+.np-badge-opt.sel-best.active{background:var(--deep);border-color:var(--deep);color:var(--gd);}
+
+/* ── FOOTER ── */
+.np-footer{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  background:#fff;gap:10px;flex-wrap:wrap;
+}
+.np-nav-btns{display:flex;gap:8px;}
+.np-prev-btn,.np-next-btn{
+  padding:8px 18px;border-radius:20px;font-size:.85rem;font-weight:700;
+  border:none;cursor:pointer;transition:.2s;font-family:'Tajawal',sans-serif;
+}
+.np-prev-btn{background:transparent;border:1.5px solid var(--border);color:var(--muted);}
+.np-prev-btn:hover:not(:disabled){border-color:var(--pk);color:var(--pk);}
+.np-prev-btn:disabled{opacity:.38;cursor:not-allowed;}
+.np-next-btn{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;box-shadow:0 4px 14px rgba(232,77,138,.3);}
+.np-next-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(232,77,138,.4);}
+.np-save-btn{
+  background:linear-gradient(135deg,var(--gd),var(--gd2));color:var(--dark);
+  padding:10px 26px;border-radius:24px;font-size:.9rem;font-weight:800;
+  border:none;cursor:pointer;transition:.2s;font-family:'Tajawal',sans-serif;
+  box-shadow:0 4px 14px rgba(212,160,23,.35);display:none;
+}
+.np-save-btn:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(212,160,23,.5);}
+.np-cancel-btn{
+  background:transparent;border:1.5px solid var(--border);color:var(--muted);
+  padding:8px 18px;border-radius:20px;font-size:.85rem;font-weight:700;
+  cursor:pointer;transition:.2s;font-family:'Tajawal',sans-serif;
+}
+.np-cancel-btn:hover{border-color:var(--danger);color:var(--danger);}
+
+/* ── STEP COUNTER ── */
+.np-step-counter{font-size:.75rem;color:var(--muted);font-weight:600;}
+.np-step-counter strong{color:var(--pk);}
+</style>
+
 <div class="m-ov" id="add-prod-modal">
-  <div class="m-box">
-    <h3>✦ إضافة منتج جديد</h3>
-    <div class="f-row"><label>اسم المنتج *</label><input id="np-name" placeholder="مثال: كريم الوجه المرطب"></div>
-    <div class="f-grid">
-      <div class="f-row"><label>الفئة *</label>
-        <select id="np-cat">
-          <option value="hair">شعر</option><option value="face">وجه</option>
-          <option value="body">جسم</option><option value="makeup">ميك أب</option>
-          <option value="women">نسائي</option><option value="care">عناية</option>
-        </select>
+  <div class="m-box" style="display:flex;flex-direction:column;max-height:92vh;overflow:hidden;">
+
+    <!-- ── Header ── -->
+    <div class="np-header" style="flex-shrink:0;">
+      <button class="np-close-btn" onclick="closeMod('add-prod-modal')" title="إغلاق">✕</button>
+      <h3>إضافة منتج جديد <span class="np-star">✦</span></h3>
+    </div>
+
+    <!-- ── Step Tabs ── -->
+    <div class="np-steps" id="np-steps-bar" style="flex-shrink:0;">
+      <button class="np-step-btn ac" id="nstep-3" onclick="goNpStep(0)">
+        <span class="np-step-ico">📋</span> الأساسيات
+        <span class="np-step-dot"></span>
+      </button>
+      <button class="np-step-btn" id="nstep-2" onclick="goNpStep(1)">
+        <span class="np-step-ico">💰</span> الأسعار
+        <span class="np-step-dot"></span>
+      </button>
+      <button class="np-step-btn" id="nstep-1" onclick="goNpStep(2)">
+        <span class="np-step-ico">📷</span> الصور
+        <span class="np-step-dot"></span>
+      </button>
+      <button class="np-step-btn" id="nstep-0" onclick="goNpStep(3)">
+        <span class="np-step-ico">📝</span> التفاصيل
+        <span class="np-step-dot"></span>
+      </button>
+    </div>
+
+    <!-- ── Panels (scrollable) ── -->
+    <div style="flex:1;overflow-y:auto;min-height:0;">
+
+      <!-- PANEL 0: الأساسيات -->
+      <div class="np-panel ac" id="np-panel-0">
+        <div class="np-sec-lbl">🏷️ معلومات المنتج الأساسية</div>
+
+        <div class="np-field">
+          <label>اسم المنتج *</label>
+          <input id="np-name" placeholder="مثال: كريم الوجه المرطب بالهيالورونيك">
+        </div>
+
+        <div class="np-grid">
+          <div class="np-field">
+            <label>الفئة *</label>
+            <select id="np-cat">
+              <option value="hair">💇 شعر</option>
+              <option value="face">✨ وجه</option>
+              <option value="body">🧴 جسم</option>
+              <option value="makeup">💄 ميك أب</option>
+              <option value="women">👩 نسائي</option>
+              <option value="care">🌿 عناية</option>
+            </select>
+          </div>
+          <div class="np-field">
+            <label>الإيموجي (اختياري)</label>
+            <div class="np-emoji-wrap">
+              <div class="np-emoji-display" id="np-emoji-preview" onclick="document.getElementById('np-emoji').focus()">💄</div>
+              <input id="np-emoji" placeholder="💄" maxlength="4" oninput="document.getElementById('np-emoji-preview').textContent=this.value||'💄'" style="flex:1">
+            </div>
+          </div>
+        </div>
+
+        <div class="np-field">
+          <label>الوصف</label>
+          <textarea id="np-description" placeholder="وصف مختصر وجذاب للمنتج يشجع العميلة على الشراء..."></textarea>
+        </div>
+
+        <div class="np-field">
+          <label>الشارة</label>
+          <div class="np-badge-row">
+            <button type="button" class="np-badge-opt sel-none active" onclick="selectNpBadge('',this)">بدون شارة</button>
+            <button type="button" class="np-badge-opt sel-new" onclick="selectNpBadge('new',this)">✨ جديد</button>
+            <button type="button" class="np-badge-opt sel-sale" onclick="selectNpBadge('sale',this)">🏷️ خصم</button>
+            <button type="button" class="np-badge-opt sel-best" onclick="selectNpBadge('best',this)">⭐ الأكثر مبيعاً</button>
+          </div>
+          <input type="hidden" id="np-badge" value="">
+        </div>
+
+        <!-- حقل المورّد — للمدير فقط -->
+        <div class="np-field" id="np-sup-wrap" style="display:none">
+          <label>🏪 المورّد (اختياري)</label>
+          <!-- قائمة الموردين المسجّلين -->
+          <select id="np-supplier" style="border-color:rgba(212,160,23,.5);background:linear-gradient(to left,var(--gd-pale),#fff);margin-bottom:7px" onchange="npOnSupplierSelect(this)">
+            <option value="">— اختر من القائمة —</option>
+          </select>
+          <!-- أو كتابة يدوية / اسم قناة -->
+          <div style="position:relative">
+            <input id="np-supplier-manual" list="np-supplier-datalist"
+              placeholder="أو اكتب اسم المورّد / رابط قناته يدوياً..."
+              style="border-color:rgba(212,160,23,.35);font-size:.83rem"
+              oninput="npOnSupplierManual(this)">
+            <datalist id="np-supplier-datalist"></datalist>
+          </div>
+          <div class="np-hint">اختر من القائمة أو اكتب الاسم يدوياً — اللي تكتبيه هو اللي يتحفظ</div>
+        </div>
+
+        <!-- بطاقة كود المنتج — تظهر بعد الحفظ فقط -->
+        <div id="np-saved-code-card" style="display:none;margin-top:14px;background:linear-gradient(135deg,#f0fff4,#e6ffed);border:2px solid #27ae60;border-radius:16px;padding:16px 18px;">
+          <div style="font-size:.8rem;color:#1e8449;font-weight:700;margin-bottom:8px">✅ تمت إضافة المنتج بنجاح!</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="flex:1">
+              <div style="font-size:.72rem;color:#555;margin-bottom:3px">🏷️ كود المنتج (SKU / ID)</div>
+              <div id="np-saved-code-val" style="font-size:1.35rem;font-weight:900;color:#1a5c2e;letter-spacing:2px;font-family:monospace">—</div>
+            </div>
+            <button onclick="npCopyCode()" style="background:#27ae60;color:#fff;border:none;border-radius:12px;padding:8px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif">📋 نسخ الكود</button>
+          </div>
+          <div style="font-size:.73rem;color:#555;margin-top:8px">📌 احتفظي بهذا الكود — يُستخدم في المخزون وأوامر الشراء والفواتير</div>
+        </div>
+
       </div>
-      <div class="f-row"><label>الإيموجي</label><input id="np-emoji" placeholder="💄" maxlength="4"></div>
-    </div>
-    <div class="f-row">
-      <label>صور المنتج (اختياري — يمكن إضافة أكثر من صورة)</label>
-      <input type="file" id="np-img" accept="image/*" multiple style="display:none" onchange="previewNpImgs(this)">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
-        <button type="button" class="m-save" style="padding:7px 14px;font-size:.8rem" onclick="document.getElementById('np-img').click()">📷 إضافة صور</button>
-        <span id="np-img-lbl" style="font-size:.76rem;color:var(--muted)">لم يتم اختيار صور</span>
+
+      <!-- PANEL 1: الأسعار -->
+      <div class="np-panel" id="np-panel-1">
+        <div class="np-sec-lbl">💳 تسعير المنتج</div>
+
+        <div class="np-grid" style="margin-bottom:13px">
+          <div class="np-field">
+            <label>السعر (ج.م) *</label>
+            <input id="np-price" type="number" placeholder="150" min="0">
+          </div>
+          <div class="np-field">
+            <label>السعر القديم (قبل الخصم)</label>
+            <input id="np-old" type="number" placeholder="200" min="0">
+          </div>
+        </div>
+
+        <div class="np-price-card">
+          <div class="np-price-card-title">💰 سعر الشراء / التكلفة <span style="font-size:.68rem;font-weight:400;color:var(--muted)">(داخلي — للإدارة فقط)</span></div>
+          <div class="np-field" style="margin:0">
+            <input id="np-cost" type="number" placeholder="مثال: 80 ج.م" min="0" style="border-color:var(--gd)">
+            <div class="np-hint">هذا الحقل لا يظهر للعملاء — يُستخدم لحساب الأرباح</div>
+          </div>
+        </div>
+
+        <label class="np-check-row">
+          <input type="checkbox" id="np-price-tbd" onchange="toggleNpPriceTbd(this)">
+          <span>💬 سعر غير محدد — يظهر للعميلة "اتصلي للسعر"</span>
+        </label>
       </div>
-      <div id="np-imgs-preview" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:4px"></div>
+
+      <!-- PANEL 2: الصور -->
+      <div class="np-panel" id="np-panel-2">
+        <div class="np-sec-lbl">🖼️ صور المنتج</div>
+        <input type="file" id="np-img" accept="image/*" multiple style="display:none" onchange="previewNpImgs(this)">
+        <div class="np-img-zone" onclick="document.getElementById('np-img').click()">
+          <div class="niz-ico">📸</div>
+          <div class="niz-txt">اضغط لإضافة صور المنتج</div>
+          <div class="niz-sub">يمكن إضافة أكثر من صورة — JPG, PNG, WEBP</div>
+        </div>
+        <span id="np-img-lbl" style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:8px">لم يتم اختيار صور بعد</span>
+        <div id="np-imgs-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
+      </div>
+
+      <!-- PANEL 3: التفاصيل -->
+      <div class="np-panel" id="np-panel-3">
+        <div class="np-sec-lbl">📋 تفاصيل المنتج</div>
+        <div class="np-field">
+          <label>طريقة الاستخدام (خطوة في كل سطر)</label>
+          <textarea id="np-usage" rows="3" placeholder="نظّفي الوجه&#10;ضعي كمية صغيرة وافركيها بلطف&#10;اتركيها لمدة دقيقتين"></textarea>
+        </div>
+        <div class="np-field">
+          <label>المكونات (مكوّن في كل سطر)</label>
+          <textarea id="np-ingr" rows="3" placeholder="فيتامين C&#10;حمض الهيالورونيك&#10;زيت الأرغان"></textarea>
+        </div>
+        <div class="np-field">
+          <label>نصائح وتحذيرات</label>
+          <textarea id="np-tips" rows="2" placeholder="ابعدي عن العيون — في حالة التهيج توقفي عن الاستخدام"></textarea>
+        </div>
+        <div class="np-field">
+          <label>معلومات إضافية</label>
+          <textarea id="np-info" rows="2" placeholder="الحجم: 50 مل | الصنع: فرنسا | الصلاحية: 24 شهر"></textarea>
+        </div>
+      </div>
+
+    </div><!-- end scrollable -->
+
+    <!-- ── Footer ── -->
+    <div class="np-footer" style="flex-shrink:0;position:sticky;bottom:0;z-index:10;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="np-cancel-btn" onclick="closeMod('add-prod-modal')">إلغاء</button>
+        <span class="np-step-counter">خطوة <strong id="np-cur-step-lbl">1</strong> من <strong>4</strong></span>
+      </div>
+      <div class="np-nav-btns">
+        <button class="np-prev-btn" id="np-prev-btn" onclick="npStepNav(-1)">← السابق</button>
+        <button class="np-next-btn" id="np-next-btn" onclick="npStepNav(1)">التالي →</button>
+        <button class="np-save-btn" id="np-save-btn" onclick="saveNewProd()">✦ حفظ المنتج</button>
+        <button id="np-close-after-save" onclick="closeMod('add-prod-modal')" style="display:none;background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;padding:10px 22px;border-radius:24px;font-size:.9rem;font-weight:800;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;box-shadow:0 4px 14px rgba(39,174,96,.35)">إغلاق ✕</button>
+      </div>
     </div>
-    <div class="f-row"><label>الوصف</label><textarea id="np-description" placeholder="وصف مختصر"></textarea></div>
-    <div class="f-grid">
-      <div class="f-row"><label>السعر (ج.م)</label><input id="np-price" type="number" placeholder="150"></div>
-      <div class="f-row"><label>السعر القديم</label><input id="np-old" type="number" placeholder="200"></div>
-    </div>
-    <div class="f-row" style="margin-top:2px">
-      <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:#7a5000;font-weight:700">
-        💰 سعر الشراء / التكلفة (ج.م) <span style="font-size:.72rem;color:var(--muted);font-weight:400">(داخلي — للإدارة فقط)</span>
-      </label>
-      <input id="np-cost" type="number" placeholder="مثال: 80" style="border-color:var(--gd)">
-    </div>
-    <div class="f-row" style="margin-top:-4px">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem;color:var(--muted)">
-        <input type="checkbox" id="np-price-tbd" onchange="toggleNpPriceTbd(this)" style="width:16px;height:16px;accent-color:var(--pk)">
-        سعر غير محدد (يظهر للعميل "اتصلي للسعر")
-      </label>
-    </div>
-    <div class="f-row"><label>الشارة</label>
-      <select id="np-badge"><option value="">بدون</option><option value="new">جديد ✨</option><option value="sale">خصم 🏷</option><option value="best">الأكثر مبيعاً ⭐</option></select>
-    </div>
-    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
-    <div class="f-row"><label>طريقة الاستخدام (خطوة في كل سطر)</label><textarea id="np-usage" rows="3" placeholder="نظّفي الوجه&#10;ضعي كمية صغيرة"></textarea></div>
-    <div class="f-row"><label>المكونات (مكوّن في كل سطر)</label><textarea id="np-ingr" rows="3" placeholder="فيتامين C&#10;حمض الهيالورونيك"></textarea></div>
-    <div class="f-row"><label>نصائح وتحذيرات</label><textarea id="np-tips" rows="2"></textarea></div>
-    <div class="f-row"><label>معلومات إضافية</label><textarea id="np-info" rows="2" placeholder="الحجم: 50 مل | الصنع: فرنسا"></textarea></div>
-    <div class="m-btns">
-      <button class="m-cancel" onclick="closeMod('add-prod-modal')">إلغاء</button>
-      <button class="m-save" onclick="saveNewProd()">حفظ المنتج ✦</button>
-    </div>
+
   </div>
 </div>
+
+<script>
+/* ══ ADD PRODUCT MODAL — STEP NAVIGATION ══ */
+var _npStep = 0;
+var _npTotalSteps = 4;
+
+function goNpStep(idx) {
+  _npStep = Math.max(0, Math.min(_npTotalSteps - 1, idx));
+
+  // Show correct panel
+  document.querySelectorAll('.np-panel').forEach(function(p, i) {
+    p.classList.toggle('ac', i === _npStep);
+  });
+
+  // في RTL الترتيب البصري معكوس: الزر رقم 0 في الـ HTML = الأساسيات (يمين)
+  // لكننا نستخدم _npStep بشكل مباشر على الأزرار بترتيبها الـ DOM
+  var btns = document.querySelectorAll('.np-step-btn');
+  // الأزرار في الـ DOM: [التفاصيل=3, الصور=2, الأسعار=1, الأساسيات=0] بسبب RTL
+  // نعكس المنطق
+  btns.forEach(function(b, domIdx) {
+    var stepIdx = _npTotalSteps - 1 - domIdx; // RTL mapping
+    b.classList.toggle('ac', stepIdx === _npStep);
+    if (stepIdx < _npStep) b.classList.add('done'); else b.classList.remove('done');
+  });
+
+  document.getElementById('np-cur-step-lbl').textContent = _npStep + 1;
+
+  // أزرار التنقل — دايماً ظاهرة، disabled لو مش مناسبين
+  var prevBtn = document.getElementById('np-prev-btn');
+  var nextBtn = document.getElementById('np-next-btn');
+  var saveBtn = document.getElementById('np-save-btn');
+
+  prevBtn.disabled = (_npStep === 0);
+  nextBtn.style.display = _npStep < _npTotalSteps - 1 ? 'block' : 'none';
+  // زر الحفظ: يظهر في الخطوة الأخيرة فقط (ما لم يكن تم الحفظ)
+  var alreadySaved = saveBtn && saveBtn.disabled;
+  saveBtn.style.display = (_npStep === _npTotalSteps - 1 && !alreadySaved) ? 'block' : 'none';
+  // زر "إغلاق بعد الحفظ" يظهر في الخطوة الأولى فقط بعد الحفظ
+  var closeAfterSave = document.getElementById('np-close-after-save');
+  if (closeAfterSave) {
+    closeAfterSave.style.display = (alreadySaved && _npStep === 0) ? 'block' : 'none';
+  }
+}
+
+function npStepNav(dir) {
+  goNpStep(_npStep + dir);
+}
+
+function selectNpBadge(val, btn) {
+  document.querySelectorAll('.np-badge-opt').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('np-badge').value = val;
+}
+
+// لما المدير يختار من القائمة → يملأ خانة الكتابة تلقائياً
+function npOnSupplierSelect(sel) {
+  var manual = document.getElementById('np-supplier-manual');
+  if (!manual) return;
+  if (sel.value) {
+    var sup = (window._SUPPLIERS||[]).find(function(s){ return String(s.id)===String(sel.value); });
+    if (sup) manual.value = sup.name + (sup.phone ? ' — ' + sup.phone : '');
+  } else {
+    manual.value = '';
+  }
+}
+
+// لما يكتب يدوياً → يمسح اختيار القائمة
+function npOnSupplierManual(inp) {
+  var sel = document.getElementById('np-supplier');
+  if (sel) sel.value = '';
+}
+
+// دالة مساعدة تجيب اسم المورد النهائي من الحقلين
+function npGetSupplierName() {
+  var manual = (document.getElementById('np-supplier-manual')||{}).value || '';
+  if (manual.trim()) return manual.trim();
+  var sel = document.getElementById('np-supplier');
+  if (sel && sel.value) {
+    var sup = (window._SUPPLIERS||[]).find(function(s){ return String(s.id)===String(sel.value); });
+    if (sup) return sup.name + (sup.phone ? ' — ' + sup.phone : '');
+  }
+  return '';
+}
+
+// Reset steps when modal opens — handled in openAddProd()
+</script>
 
 <!-- LOGIN MODAL -->
 <div class="m-ov" id="login-modal">
@@ -2482,7 +2923,7 @@ async function init() {
 
   // ② Sync with Supabase
   try {
-    PRODUCTS = await sbGet('products', 'order=created_at.desc&select=id,name,cat,emoji,price,old_price,price_tbd,badge,in_stock,description,deposit,cost,usage,ingredients,tips,info,img_data,sku,stock_qty,created_at');
+    PRODUCTS = await sbGet('products', 'order=created_at.desc&select=id,name,cat,emoji,price,old_price,price_tbd,badge,in_stock,description,deposit,cost,usage,ingredients,tips,info,img_data,sku,stock_qty,supplier,supplier_phone,created_at');
     saveLocal('products', PRODUCTS);
     document.getElementById('stat-n').textContent = PRODUCTS.length;
     renderCats();
@@ -2693,15 +3134,15 @@ function renderProds(filter = 'all') {
   if (!list.length) { g.innerHTML = '<p class="no-prods">لا توجد منتجات في هذه الفئة حتى الآن</p>'; return; }
 
   g.innerHTML = list.map(p => `
-    <div class="prod-card ${p.in_stock===false?'out-of-stock':''}" onclick="openDetail(${p.id})">
+    <div class="prod-card ${p.in_stock===false?'out-of-stock':''}" onclick="openDetail('${p.id}')">
       ${p.badge ? `<span class="p-badge bg-${p.badge}">${bdgLabel(p.badge)}</span>` : ''}
       <span class="stock-tag ${p.in_stock===false?'tag-out':'tag-in'}">${p.in_stock===false?'نفذت الكمية ❌':'متاح ✅'}</span>
       <div class="p-img-wrap">
         ${p.img_data ? `<img src="${p.img_data}" alt="${p.name}" loading="lazy" decoding="async">` : `<div class="p-emoji">${p.emoji||'🧴'}</div>`}
         <div class="p-hover-btns">
-          <button class="p-hbtn" onclick="ev(event);addCart(${p.id})" title="أضفي للسلة" ${p.in_stock===false?'disabled style="opacity:.4;cursor:not-allowed"':''}>🛒</button>
-          ${canEdit ? `<button class="p-hbtn del-btn" onclick="ev(event);delProd(${p.id})">🗑</button>` : ''}
-          ${canEdit ? `<button class="p-hbtn stock-btn" onclick="ev(event);toggleStock(${p.id})" title="${p.in_stock===false?'تفعيل':'إيقاف'}" style="background:${p.in_stock===false?'#27ae60':'#e67e22'};color:#fff">${p.in_stock===false?'✅':'⚠️'}</button>` : ''}
+          <button class="p-hbtn" onclick="ev(event);addCart('${p.id}')" title="أضفي للسلة" ${p.in_stock===false?'disabled style="opacity:.4;cursor:not-allowed"':''}>🛒</button>
+          ${canEdit ? `<button class="p-hbtn del-btn" onclick="ev(event);delProd('${p.id}')">🗑</button>` : ''}
+          ${canEdit ? `<button class="p-hbtn stock-btn" onclick="ev(event);toggleStock('${p.id}')" title="${p.in_stock===false?'تفعيل':'إيقاف'}" style="background:${p.in_stock===false?'#27ae60':'#e67e22'};color:#fff">${p.in_stock===false?'✅':'⚠️'}</button>` : ''}
         </div>
       </div>
       <div class="p-body">
@@ -2714,26 +3155,30 @@ function renderProds(filter = 'all') {
             ${p.old_price ? `<span class="p-old">${p.old_price} ج.م</span>` : ''}
             ${p.price_tbd ? `<span style="color:var(--pk);font-size:.82rem;font-weight:700">📞 اتصلي للسعر</span>` : `${p.price||''} ج.م`}
           </div>
-          <button class="p-add" onclick="ev(event);addCart(${p.id})" ${p.in_stock===false?'disabled style="opacity:.4;background:#ccc;cursor:not-allowed"':''}>
+          <button class="p-add" onclick="ev(event);addCart('${p.id}')" ${p.in_stock===false?'disabled style="opacity:.4;background:#ccc;cursor:not-allowed"':''}>
             ${p.in_stock===false?'نفذت الكمية':'+ السلة'}
           </button>
         </div>
         ${renderStars(p)}
-        <a class="p-wa-btn" href="#" onclick="ev(event);openWaOrder(${p.id})" title="اطلب عبر واتساب">
+        <a class="p-wa-btn" href="#" onclick="ev(event);openWaOrder('${p.id}')" title="اطلب عبر واتساب">
           <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.553 4.1 1.523 5.828L.057 23.5l5.846-1.533A11.948 11.948 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.371l-.359-.214-3.721.976.993-3.622-.234-.372A9.818 9.818 0 1112 21.818z"/></svg>
-          اطلب عبر واتساب
+          ${p.in_stock===false ? '📦 اطلب رغم نفاذ الكمية' : '🟢 اطلب عبر واتساب'}
         </a>
       </div>
     </div>`).join('');
 }
 function ev(e) { e.stopPropagation(); }
+
 function openWaOrder(id) {
-  const p = PRODUCTS.find(x => x.id === id);
+  var p = PRODUCTS.find(function(x){ return String(x.id) === String(id); });
   if (!p) return;
-  const waNum = (SETTINGS.whatsapp || '201000000000').replace(/\D/g,'');
-  const price = p.price_tbd ? 'يرجى التواصل للسعر' : (p.price ? p.price + ' ج.م' : '');
-  const msg = `مرحباً 🌸 أنا مهتم بـ:\n\n📦 ${p.name}${p.sku ? '\n🏷 كود: ' + p.sku : ''}${price ? '\n💰 السعر: ' + price : ''}\n\nأرجو التواصل لتأكيد الطلب ✅`;
-  window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
+  var waNum = (SETTINGS.whatsapp || '201000000000').replace(/\D/g,'');
+  var price = p.price_tbd ? 'يرجى التواصل للسعر' : (p.price ? p.price + ' ج.م' : '');
+  var stockNote = p.in_stock===false ? '\n⚠️ الكمية نفذت — أرجو الإبلاغ عند التوفر أو الحجز المسبق' : '';
+  var skuPart = p.sku ? ('\n🏷 كود: ' + p.sku) : '';
+  var pricePart = price ? ('\n💰 السعر: ' + price) : '';
+  var msg = 'مرحباً 🌸 أنا مهتم بـ:\n\n📦 ' + p.name + skuPart + pricePart + stockNote + '\n\nأرجو التواصل لتأكيد الطلب ✅';
+  window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function filterProds(f, btn) {
@@ -2762,7 +3207,7 @@ async function delProd(id) {
   if (!confirm('حذف هذا المنتج؟')) return;
   try {
     await sbDelete('products', id);
-    PRODUCTS = PRODUCTS.filter(p => p.id !== id);
+    PRODUCTS = PRODUCTS.filter(p => String(p.id) !== String(id));
     saveLocal('products', PRODUCTS);
     renderProds(curFilter); renderCats();
     document.getElementById('stat-n').textContent = PRODUCTS.length;
@@ -2772,7 +3217,7 @@ async function delProd(id) {
 
 async function toggleStock(id) {
   if (!currentUser || !['manager','sales'].includes(currentUser.role)) return;
-  const p = PRODUCTS.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id));
   if (!p) return;
   const newStock = p.in_stock === false ? true : false;
   try {
@@ -2896,7 +3341,7 @@ function formatDesc(text) {
 }
 
 function openDetail(id) {
-  const p = PRODUCTS.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id));
   if (!p) return;
   openProdId = id;
 
@@ -3173,7 +3618,7 @@ async function toggleStockFromDetail() {
 
 // ══ RESERVATION / DEPOSIT ══
 function openReserveModal() {
-  const p = PRODUCTS.find(x => x.id === openProdId);
+  const p = PRODUCTS.find(x => String(x.id) === String(openProdId));
   if (!p || !p.deposit) return;
   document.getElementById('rsv-title').textContent = '🔒 حجز: ' + p.name;
   document.getElementById('rsv-desc').textContent =
@@ -3197,7 +3642,7 @@ async function submitReservation() {
     return; 
   }
   
-  const p = PRODUCTS.find(x => x.id === openProdId);
+  const p = PRODUCTS.find(x => String(x.id) === String(openProdId));
   if (!p) return;
 
   // Save reservation as special order in DB
@@ -3222,7 +3667,7 @@ async function submitReservation() {
 }
 
 function calcProfit() {
-  const p = PRODUCTS.find(x => x.id === openProdId);
+  const p = PRODUCTS.find(x => String(x.id) === String(openProdId));
   const price = p ? parseFloat(p.price) : 0;
   const cost = parseFloat(document.getElementById('d-cost')?.value) || 0;
   const profitVal = document.getElementById('profit-val');
@@ -3272,7 +3717,7 @@ async function saveDetail() {
   };
   try {
     await sbPatch('products', openProdId, updates);
-    const idx = PRODUCTS.findIndex(x => x.id === openProdId);
+    const idx = PRODUCTS.findIndex(x => String(x.id) === String(openProdId));
     if (idx !== -1) PRODUCTS[idx] = { ...PRODUCTS[idx], ...updates };
     saveLocal('products', PRODUCTS);
     renderProds(curFilter); renderCats();
@@ -3284,7 +3729,7 @@ async function saveDetail() {
 // ══════════════════════════════════════
 // ADD PRODUCT
 // ══════════════════════════════════════
-function openAddProd() {
+async function openAddProd() {
   if (!currentUser || !['manager','sales'].includes(currentUser.role)) return;
   ['np-name','np-emoji','np-description','np-price','np-old','np-cost','np-usage','np-ingr','np-tips','np-info'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   const tbdNew = document.getElementById('np-price-tbd'); if(tbdNew){tbdNew.checked=false; document.getElementById('np-price').disabled=false; document.getElementById('np-old').disabled=false;}
@@ -3293,6 +3738,53 @@ function openAddProd() {
   document.getElementById('np-img-lbl').textContent = 'لم يتم اختيار صور';
   document.getElementById('np-imgs-preview').innerHTML = '';
   newProdImgsData = [];
+  // إعادة تعيين بطاقة الكود
+  var ccard = document.getElementById('np-saved-code-card');
+  if (ccard) ccard.style.display = 'none';
+  var cval = document.getElementById('np-saved-code-val');
+  if (cval) cval.textContent = '—';
+  window._npLastSavedCode = '';
+  // إعادة تعيين زر الحفظ
+  var saveBtn2 = document.getElementById('np-save-btn');
+  if (saveBtn2) { saveBtn2.textContent = '✦ حفظ المنتج'; saveBtn2.disabled = false; }
+  var closeAfterSave = document.getElementById('np-close-after-save');
+  if (closeAfterSave) closeAfterSave.style.display = 'none';
+  var epv = document.getElementById('np-emoji-preview'); if(epv) epv.textContent = '💄';
+  document.querySelectorAll('.np-badge-opt').forEach(function(b){b.classList.remove('active');});
+  var noBadge = document.querySelector('.np-badge-opt.sel-none'); if(noBadge) noBadge.classList.add('active');
+
+  // حقل المورّد — للمدير فقط
+  var sw = document.getElementById('np-sup-wrap');
+  var isMgr = currentUser && currentUser.role === 'manager';
+  if (sw) sw.style.display = isMgr ? '' : 'none';
+  if (isMgr) {
+    // إعادة تعيين الحقول
+    var inpManual = document.getElementById('np-supplier-manual');
+    if (inpManual) inpManual.value = '';
+    var selEl = document.getElementById('np-supplier');
+    if (selEl) selEl.value = '';
+    // جلب الموردين من Supabase مباشرة
+    try {
+      const sups = await sbGet('suppliers', 'select=id,name,phone&order=name.asc');
+      window._SUPPLIERS = sups || [];
+      // تحديث datalist للكتابة اليدوية
+      var dl = document.getElementById('np-supplier-datalist');
+      if (dl) {
+        dl.innerHTML = sups.map(function(s){
+          return '<option value="' + s.name + '">' + (s.phone ? s.name + ' — ' + s.phone : s.name) + '</option>';
+        }).join('');
+      }
+      // تحديث select القائمة المنسدلة
+      if (selEl) {
+        selEl.innerHTML = '<option value="">— اختر من القائمة —</option>' +
+          sups.map(function(s){
+            return '<option value="' + s.id + '">' + s.name + (s.phone?' ('+s.phone+')':'') + '</option>';
+          }).join('');
+      }
+    } catch(e) { console.warn('فشل تحميل الموردين:', e); }
+  }
+
+  if(typeof goNpStep === 'function') { goNpStep(0); document.querySelectorAll('.np-step-btn').forEach(function(b){b.classList.remove('done');}); }
   openMod('add-prod-modal');
 }
 let newProdImgsData = []; // مصفوفة الصور الجديدة
@@ -3332,12 +3824,21 @@ function removeNpImg(btn, idx) {
 async function saveNewProd() {
   const name = document.getElementById('np-name').value.trim();
   const priceTbd = document.getElementById('np-price-tbd')?.checked || false;
-  const price = parseFloat(document.getElementById('np-price').value);
+  const priceRaw = parseFloat(document.getElementById('np-price').value);
   if (!name) { toast('⚠️ أدخل اسم المنتج'); return; }
-  if (!priceTbd && !price) { toast('⚠️ أدخل السعر أو اختر "سعر غير محدد"'); return; }
+  if (!priceTbd && isNaN(priceRaw)) { toast('⚠️ أدخل السعر أو اختر "سعر غير محدد"'); return; }
+  const price = priceTbd ? 0 : (isNaN(priceRaw) ? 0 : priceRaw);
   const usage = document.getElementById('np-usage').value.split('\n').filter(x=>x.trim());
   const ingr = document.getElementById('np-ingr').value.split('\n').filter(x=>x.trim());
   const imgs = newProdImgsData.length ? newProdImgsData : [];
+  // Supplier (manager only)
+  var supplierName = npGetSupplierName();
+  var suppSel = document.getElementById('np-supplier');
+  var supplierPhone = '';
+  if (suppSel && suppSel.value) {
+    var suppObj = (window._SUPPLIERS||[]).find(function(s){ return String(s.id)===String(suppSel.value); });
+    if (suppObj) supplierPhone = suppObj.phone || '';
+  }
   const prod = {
     name, cat: document.getElementById('np-cat').value,
     emoji: document.getElementById('np-emoji').value || '🧴',
@@ -3346,36 +3847,66 @@ async function saveNewProd() {
     images: imgs,
     price_tbd: priceTbd,
     description: document.getElementById('np-description').value.trim(),
-    price, old_price: parseFloat(document.getElementById('np-old').value) || null,
+    price,
+    old_price: parseFloat(document.getElementById('np-old').value) || null,
     cost: parseFloat(document.getElementById('np-cost')?.value) || null,
     badge: document.getElementById('np-badge').value,
     usage, ingredients: ingr,
     tips: document.getElementById('np-tips').value.trim(),
     info: document.getElementById('np-info').value.trim(),
+    supplier: supplierName || null,
+    supplier_phone: supplierPhone || null,
   };
   try {
     const res = await sbPost('products', prod);
-    PRODUCTS.unshift(res[0]);
+    const saved = Array.isArray(res) ? res[0] : res;
+    if (!saved) throw new Error('لم يتم استقبال بيانات من الخادم');
+    PRODUCTS.unshift(saved);
     renderProds(curFilter); renderCats();
     document.getElementById('stat-n').textContent = PRODUCTS.length;
     saveLocal('products', PRODUCTS);
-    closeMod('add-prod-modal');
-    toast(`✦ تمت إضافة "${name}" وحُفظ على Supabase فوراً ✓`);
-  } catch(e) { toast('⚠️ خطأ في إضافة المنتج'); console.error(e); }
+    // عرض كود المنتج في بانل الأساسيات
+    const newCode = saved.sku || saved.code || saved.id || '—';
+    const codeCard = document.getElementById('np-saved-code-card');
+    const codeVal  = document.getElementById('np-saved-code-val');
+    if (codeCard && codeVal) {
+      codeVal.textContent = String(newCode);
+      codeCard.style.display = 'block';
+    }
+    window._npLastSavedCode = String(newCode);
+    // الانتقال للخطوة الأولى لعرض البطاقة
+    goNpStep(0);
+    // تحديث زر الحفظ
+    const saveBtn = document.getElementById('np-save-btn');
+    if (saveBtn) { saveBtn.textContent = '✅ تم الحفظ'; saveBtn.disabled = true; }
+    toast(`✦ تمت إضافة "${name}" — الكود: ${newCode} ✓`);
+  } catch(e) { toast('⚠️ خطأ في إضافة المنتج: ' + (e.message||e)); console.error(e); }
+}
+
+function npCopyCode() {
+  const code = (window._npLastSavedCode || document.getElementById('np-saved-code-val')?.textContent || '').trim();
+  if (!code || code === '—') return;
+  navigator.clipboard?.writeText(code).then(() => toast('📋 تم نسخ الكود: ' + code)).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('📋 تم نسخ الكود: ' + code);
+  });
 }
 
 // ══════════════════════════════════════
 // CART
 // ══════════════════════════════════════
 function addCart(id) {
-  const p = PRODUCTS.find(x => x.id === id); if (!p) return;
-  const ex = cart.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id)); if (!p) return;
+  const ex = cart.find(x => String(x.id) === String(id));
   if (ex) ex.qty++; else cart.push({...p, qty:1});
   updBdg(); toast(`✦ تمت إضافة "${p.name}"`);
 }
-function remFromCart(id) { cart = cart.filter(x => x.id !== id); updBdg(); renderCart(); }
+function remFromCart(id) { cart = cart.filter(x => String(x.id) !== String(id)); updBdg(); renderCart(); }
 function chQty(id, d) {
-  const i = cart.find(x => x.id === id);
+  const i = cart.find(x => String(x.id) === String(id));
   if (i) { i.qty += d; if (i.qty <= 0) remFromCart(id); else { updBdg(); renderCart(); } }
 }
 function updBdg() { document.getElementById('cart-bdg').textContent = cart.reduce((s,i) => s + i.qty, 0); }
@@ -3398,12 +3929,12 @@ function renderCart() {
         <div class="ci-c">${catName(i.cat)}</div>
         <div class="ci-p">${i.price * i.qty} ج.م</div>
         <div class="ci-qty-row">
-          <button class="q-btn" onclick="chQty(${i.id},-1)">−</button>
+          <button class="q-btn" onclick="chQty('${i.id}',-1)">−</button>
           <span class="q-n">${i.qty}</span>
-          <button class="q-btn" onclick="chQty(${i.id},1)">+</button>
+          <button class="q-btn" onclick="chQty('${i.id}',1)">+</button>
         </div>
       </div>
-      <button class="ci-rm" onclick="remFromCart(${i.id})">🗑</button>
+      <button class="ci-rm" onclick="remFromCart('${i.id}')">🗑</button>
     </div>`).join('');
   document.getElementById('cs-total').textContent = cart.reduce((s,i) => s + i.price*i.qty, 0) + ' ج.م';
 }
@@ -3520,7 +4051,7 @@ function renderOrdersBody(body, filterStatus='') {
         <span class="order-date">🕐 ${dateStr}</span>
         ${!canHideRevenue ? `<span class="order-total">${o.total} ج.م</span>` : ''}
         <select class="order-status ${statusCls(o.status)}" onchange="updateOrderStatus(${o.id},this.value,this)">${statusOpts}</select>
-        ${canDel ? `<button class="manager-del-order" onclick="delOrder(${o.id})">🗑</button>` : ''}
+        ${canDel ? `<button class="manager-del-order" onclick="delOrder('${o.id}')">🗑</button>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:4px;margin:6px 0">${tlHtml}</div>
       <div class="order-items">🛍 ${itemsHtml}${o.deposit?` | 🔒 عربون: ${o.deposit} ج.م`:''}</div>
@@ -3797,7 +4328,7 @@ function renderStaffList() {
         <div class="staff-role"><span class="role-badge ${roleClass[s.role]||'rb-orders'}">${roleMap[s.role]||s.role}</span></div>
         <div class="staff-email">@${s.username}</div>
       </div>
-      ${isManager ? `<button class="del-staff-btn" onclick="delStaff(${s.id})">🗑 حذف</button>` : ''}
+      ${isManager ? `<button class="del-staff-btn" onclick="delStaff('${s.id}')">🗑 حذف</button>` : ''}
     </div>`).join('');
 }
 function openAddStaff() { if(currentUser?.role==='manager') openMod('add-staff-modal'); }
@@ -3913,8 +4444,8 @@ async function loadUsersList() {
           <td style="padding:11px 14px;color:var(--muted);font-family:monospace">@${s.username}</td>
           <td style="padding:11px 14px;text-align:center"><span style="background:${roleColor[s.role]||'#666'}22;color:${roleColor[s.role]||'#666'};border:1px solid ${roleColor[s.role]||'#666'}44;border-radius:20px;padding:3px 12px;font-size:.75rem;font-weight:700">${roleMap[s.role]||s.role}</span></td>
           <td style="padding:11px 14px;text-align:center">
-            <button onclick="openEditUserModal(${s.id})" style="background:rgba(212,160,23,.15);color:#7a5000;border:1px solid rgba(212,160,23,.4);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer;margin-left:6px">✏️ تعديل</button>
-            <button onclick="deleteUser(${s.id},'${(s.name||s.username).replace(/'/g,'')}')" style="background:rgba(231,76,60,.1);color:#c0392b;border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer">🗑 حذف</button>
+            <button onclick="openEditUserModal('${s.id}')" style="background:rgba(212,160,23,.15);color:#7a5000;border:1px solid rgba(212,160,23,.4);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer;margin-left:6px">✏️ تعديل</button>
+            <button onclick="deleteUser('${s.id}','${(s.name||s.username).replace(/'/g,'')}')" style="background:rgba(231,76,60,.1);color:#c0392b;border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer">🗑 حذف</button>
           </td>
         </tr>`).join('')}
       </tbody>
@@ -4342,6 +4873,123 @@ function swDashNav(id, navBtn) {
 // ══════════════════════════════════════
 let pcCurrentProduct = null;
 
+// ══ PRODUCT CARD — تعديل الأسعار والكمية ══
+function pcToggleEditPrices() {
+  const viewEl = document.getElementById('pc-view-prices');
+  const editEl = document.getElementById('pc-edit-prices');
+  const isEdit = editEl.style.display !== 'none';
+  if (isEdit) {
+    // back to view
+    editEl.style.display = 'none';
+    viewEl.style.display = 'block';
+  } else {
+    // fill inputs from current product
+    const p = pcCurrentProduct;
+    if (!p) return;
+    document.getElementById('pc-inp-price').value   = parseFloat(p.price)     || '';
+    document.getElementById('pc-inp-old').value     = parseFloat(p.old_price) || '';
+    document.getElementById('pc-inp-cost').value    = parseFloat(p.cost)      || '';
+    document.getElementById('pc-inp-deposit').value = parseFloat(p.deposit)   || '';
+    document.getElementById('pc-inp-qty').value     = p.stock_qty != null ? p.stock_qty : '';
+    editEl.style.display  = 'block';
+    viewEl.style.display  = 'none';
+    pcProfitPreview();
+  }
+}
+
+function pcProfitPreview() {
+  const sale = parseFloat(document.getElementById('pc-inp-price').value) || 0;
+  const old  = parseFloat(document.getElementById('pc-inp-old').value)   || 0;
+  const cost = parseFloat(document.getElementById('pc-inp-cost').value)  || 0;
+  const prev = document.getElementById('pc-profit-preview');
+  if (sale > 0 && cost > 0) {
+    const profitAmt = (sale - cost).toFixed(2);
+    const profitPct = ((sale - cost) / sale * 100).toFixed(1);
+    const discPct   = (old > sale && old > 0) ? ((old - sale) / old * 100).toFixed(0) + '%' : '—';
+    document.getElementById('pc-prev-profit').textContent = profitAmt + ' ج.م';
+    document.getElementById('pc-prev-pct').textContent    = profitPct + '%';
+    document.getElementById('pc-prev-disc').textContent   = discPct;
+    prev.style.display = 'block';
+  } else {
+    prev.style.display = 'none';
+  }
+}
+
+async function pcSavePrices() {
+  const p = pcCurrentProduct;
+  if (!p) return;
+  const newPrice   = parseFloat(document.getElementById('pc-inp-price').value);
+  const newOld     = parseFloat(document.getElementById('pc-inp-old').value);
+  const newCost    = parseFloat(document.getElementById('pc-inp-cost').value);
+  const newDeposit = parseFloat(document.getElementById('pc-inp-deposit').value);
+  const newQty     = parseInt(document.getElementById('pc-inp-qty').value);
+
+  if (isNaN(newPrice) || newPrice < 0) { toast('⚠️ سعر البيع غير صحيح'); return; }
+
+  const saveBtn = document.querySelector('#pc-edit-prices button[onclick="pcSavePrices()"]');
+  if (saveBtn) { saveBtn.textContent = '⏳ جارٍ الحفظ...'; saveBtn.disabled = true; }
+
+  const patchData = {};
+  if (!isNaN(newPrice))   patchData.price      = newPrice;
+  if (!isNaN(newOld))     patchData.old_price  = newOld;
+  if (!isNaN(newCost))    patchData.cost       = newCost;
+  if (!isNaN(newDeposit)) patchData.deposit    = newDeposit;
+  if (!isNaN(newQty))     { patchData.stock_qty = newQty; patchData.in_stock = newQty > 0; }
+
+  try {
+    await sbPatch('products', p.id, patchData);
+
+    // Update local product object
+    Object.assign(p, patchData);
+    // Update PRODUCTS array
+    const idx = PRODUCTS.findIndex(x => String(x.id) === String(p.id));
+    if (idx !== -1) Object.assign(PRODUCTS[idx], patchData);
+    saveLocal('products', PRODUCTS);
+
+    // Refresh displayed values
+    const salePrice = parseFloat(p.price) || 0;
+    const oldPrice  = parseFloat(p.old_price) || 0;
+    const cost      = parseFloat(p.cost) || 0;
+    const qty       = p.stock_qty ?? 0;
+    const disc      = (oldPrice > salePrice && oldPrice > 0) ? ((oldPrice - salePrice) / oldPrice * 100).toFixed(0) + '%' : '—';
+    const profitAmt = cost > 0 && salePrice > 0 ? (salePrice - cost).toFixed(2) + ' ج.م' : '—';
+    const profitPct = cost > 0 && salePrice > 0 ? (((salePrice - cost) / salePrice) * 100).toFixed(1) + '%' : '—';
+
+    document.getElementById('pc-price').textContent      = salePrice > 0 ? salePrice + ' ج.م' : '—';
+    document.getElementById('pc-old').textContent        = oldPrice  > 0 ? oldPrice  + ' ج.م' : '—';
+    document.getElementById('pc-disc').textContent       = disc;
+    document.getElementById('pc-cost').textContent       = cost > 0 ? cost + ' ج.م' : '—';
+    document.getElementById('pc-profit').textContent     = profitAmt;
+    document.getElementById('pc-profit-pct').textContent = profitPct;
+    document.getElementById('pc-qty').textContent        = qty + ' قطعة';
+    document.getElementById('pc-deposit').textContent    = p.deposit ? p.deposit + ' ج.م' : '—';
+    document.getElementById('pc-status').textContent     = qty === 0 ? '❌ نفد' : qty <= 3 ? '⚠️ منخفض' : '✅ متاح';
+    document.getElementById('pc-price-big').textContent  = salePrice > 0 ? salePrice + ' ج.م' : '—';
+    document.getElementById('pc-old-price').textContent  = oldPrice  > 0 ? oldPrice  + ' ج.م' : '';
+    const stockBadge = document.getElementById('pc-stock-badge');
+    stockBadge.textContent  = qty === 0 ? '❌ نفد المخزون' : qty <= 3 ? `⚠️ كمية منخفضة (${qty})` : `✅ متاح (${qty})`;
+    stockBadge.style.background = qty === 0 ? '#f8d7da' : qty <= 3 ? '#fff3cd' : '#d4edda';
+    stockBadge.style.color      = qty === 0 ? '#721c24' : qty <= 3 ? '#856404' : '#155724';
+    const discBadge = document.getElementById('pc-discount-badge');
+    if (disc !== '—') { discBadge.textContent = '🔥 خصم ' + disc; discBadge.style.color = '#e84d8a'; } else { discBadge.textContent = ''; }
+
+    // Refresh product grid too
+    renderProds(curFilter);
+
+    // Switch back to view mode
+    document.getElementById('pc-edit-prices').style.display = 'none';
+    document.getElementById('pc-view-prices').style.display = 'block';
+
+    toast('✅ تم حفظ التغييرات في قاعدة البيانات بنجاح 🌸');
+  } catch(e) {
+    console.error('pcSavePrices error:', e);
+    toast('⚠️ خطأ في الحفظ، تحقق من الاتصال');
+  } finally {
+    if (saveBtn) { saveBtn.textContent = '💾 حفظ في قاعدة البيانات'; saveBtn.disabled = false; }
+  }
+}
+
+
 function pcSearch() {
   const q = (document.getElementById('pc-search-inp').value || '').trim().toLowerCase();
   const resBox = document.getElementById('pc-results');
@@ -4385,7 +5033,7 @@ function pcClear() {
 }
 
 async function pcSelectProduct(id) {
-  const p = PRODUCTS.find(x => x.id === id);
+  const p = PRODUCTS.find(x => String(x.id) === String(id));
   if (!p) return;
   pcCurrentProduct = p;
   document.getElementById('pc-results').style.display = 'none';
@@ -4430,6 +5078,11 @@ async function pcSelectProduct(id) {
   document.getElementById('pc-qty').textContent = qty + ' قطعة';
   document.getElementById('pc-status').textContent = qty === 0 ? '❌ نفد' : qty <= 3 ? '⚠️ منخفض' : '✅ متاح';
   document.getElementById('pc-deposit').textContent = p.deposit ? p.deposit + ' ج.م' : '—';
+  const sqv = document.getElementById('pc-stock-qty-val'); if(sqv) sqv.textContent = (p.stock_qty != null ? p.stock_qty : '—') + ' قطعة';
+  // Reset edit mode when switching product
+  const editEl = document.getElementById('pc-edit-prices');
+  const viewEl = document.getElementById('pc-view-prices');
+  if(editEl && viewEl){ editEl.style.display='none'; viewEl.style.display='block'; }
   document.getElementById('pc-cat').textContent = catMap[p.cat] || p.cat;
   document.getElementById('pc-badge').textContent = badgeMap[p.badge] || p.badge || '—';
   document.getElementById('pc-date').textContent = p.created_at ? new Date(p.created_at).toLocaleDateString('ar-EG') : '—';
@@ -5065,9 +5718,9 @@ async function loadPOList() {
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <span style="font-weight:700;color:var(--pk);font-size:.95rem">${(po.total||0).toFixed(2)} ج.م</span>
-            <button onclick="editPO(${po.id})" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
-            <button onclick="reprintPO(${po.id})" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
-            <button onclick="deletePORec(${po.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+            <button onclick="editPO('${po.id}')" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
+            <button onclick="reprintPO('${po.id}')" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
+            <button onclick="deletePORec('${po.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
           </div>
         </div>
         <div style="font-size:.8rem;color:var(--muted)">🏪 ${po.supplier||'—'} ${po.supplier_phone?'| 📞 '+po.supplier_phone:''}</div>
@@ -5157,9 +5810,9 @@ async function loadInvList() {
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <span style="font-weight:700;color:var(--pk);font-size:.95rem">${(inv.total||0).toFixed(2)} ج.م</span>
-            <button onclick="editInv(${inv.id})" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
-            <button onclick="reprintInv(${inv.id})" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
-            <button onclick="deleteInvRec(${inv.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+            <button onclick="editInv('${inv.id}')" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
+            <button onclick="reprintInv('${inv.id}')" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
+            <button onclick="deleteInvRec('${inv.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
           </div>
         </div>
         <div style="font-size:.8rem;color:var(--muted)">👤 ${inv.client||'—'} ${inv.client_phone?'| 📞 '+inv.client_phone:''}</div>
@@ -6121,8 +6774,8 @@ async function loadPiList() {
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <span style="font-weight:700;color:var(--pk);font-size:.95rem">${(pi.total||0).toFixed(2)} ج.م</span>
-            <button onclick="reprintPI(${pi.id})" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
-            <button onclick="deletePiRec(${pi.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+            <button onclick="reprintPI('${pi.id}')" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
+            <button onclick="deletePiRec('${pi.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
           </div>
         </div>
         <div style="font-size:.8rem;color:var(--muted)">🏪 ${pi.supplier||'—'} ${pi.supplier_phone?'| 📞 '+pi.supplier_phone:''}</div>
@@ -6289,8 +6942,8 @@ async function loadSupplierList() {
           ${s.email?`<span style="font-size:.78rem;color:var(--muted)">📧 ${s.email}</span>`:''}
         </div>
         <div style="display:flex;gap:6px">
-          <button onclick="editSupplier(${s.id})" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
-          <button onclick="deleteSupplier(${s.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
+          <button onclick="editSupplier('${s.id}')" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
+          <button onclick="deleteSupplier('${s.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
         </div>
       </div>
       ${s.address?`<div style="font-size:.78rem;color:var(--muted);margin-top:6px">📍 ${s.address}</div>`:''}
@@ -6300,7 +6953,7 @@ async function loadSupplierList() {
 }
 
 async function editSupplier(id) {
-  const s = window._SUPPLIERS.find(x => x.id === id);
+  const s = window._SUPPLIERS.find(x => String(x.id) === String(id));
   if (!s) return;
   document.getElementById('supplier-add-form').style.display = '';
   document.getElementById('sup-edit-id').value = s.id;
@@ -6382,7 +7035,7 @@ async function loadTreasury() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-weight:800;font-size:1rem;color:${isIncome?'#155724':'#721c24'}">${isIncome?'+':'−'}${parseFloat(tr.amount).toFixed(2)} ج.م</span>
-          <button onclick="deleteTreasuryEntry(${tr.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:8px;padding:2px 8px;font-size:.72rem;cursor:pointer">🗑</button>
+          <button onclick="deleteTreasuryEntry('${tr.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:8px;padding:2px 8px;font-size:.72rem;cursor:pointer">🗑</button>
         </div>
       </div>`;
     }).join('');
