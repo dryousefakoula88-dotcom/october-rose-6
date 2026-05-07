@@ -213,6 +213,22 @@ body.staff-sales .p-hbtn.del-btn,body.manager .p-hbtn.del-btn{display:flex;}
 .pc-search-result-item:hover{background:var(--pk-pale);}
 .pc-search-result-item:last-child{border-bottom:none;}
 
+/* ── SMART PRODUCT SEARCH ── */
+.prod-search-wrap{position:relative;width:100%;}
+.prod-search-inp{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.82rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--deep);background:#fff;}
+.prod-search-inp:focus{border-color:var(--pk);background:var(--pk-pale);}
+.prod-search-dd{position:absolute;top:calc(100% + 2px);right:0;left:0;background:#fff;border:1.5px solid var(--pk);border-radius:10px;box-shadow:0 8px 24px rgba(232,77,138,.18);z-index:9999;max-height:220px;overflow-y:auto;display:none;}
+.prod-search-dd.open{display:block;}
+.prod-search-item{padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:.82rem;border-bottom:1px solid var(--border2);transition:.12s;}
+.prod-search-item:last-child{border-bottom:none;}
+.prod-search-item:hover,.prod-search-item.focused{background:var(--pk-pale);}
+.prod-search-item .psi-sku{font-size:.65rem;color:#7a5000;background:var(--gd-pale);border:1px solid var(--gd);border-radius:6px;padding:1px 6px;font-weight:700;flex-shrink:0;}
+.prod-search-item .psi-name{flex:1;color:var(--deep);font-weight:600;}
+.prod-search-item .psi-cost{font-size:.72rem;color:var(--muted);flex-shrink:0;}
+.prod-search-item .psi-stock{font-size:.68rem;font-weight:700;flex-shrink:0;}
+.prod-search-empty{padding:14px;text-align:center;color:var(--muted);font-size:.8rem;}
+.prod-search-inp.selected{border-color:var(--success);background:#d4edda;}
+
 .inv-table{width:100%;border-collapse:collapse;font-size:.82rem;}
 .inv-table th{background:var(--dark);color:var(--gd);padding:8px 10px;text-align:right;}
 .inv-table td{padding:7px 10px;border-bottom:1px solid var(--border2);}
@@ -1808,9 +1824,41 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
           </div>
           <input type="hidden" id="pi-edit-id" value="">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <div class="f-row" style="margin:0"><label>اسم المورّد</label>
-              <input id="pi-supplier" placeholder="اختر مورّد أو اكتب..." list="pi-supplier-list" oninput="onPiSupplierInput()">
+            <div class="f-row" style="margin:0;grid-column:1/-1">
+              <label>🏪 اسم المورّد</label>
+              <!-- Dropdown يظهر الموردين المسجّلين -->
+              <select id="pi-supplier-select" onchange="onPiSupplierSelect()"
+                style="margin-bottom:6px;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;font-size:.83rem;font-family:'Tajawal',sans-serif;color:var(--deep);background:linear-gradient(to left,var(--pk-pale),#fff);width:100%">
+                <option value="">— اختر مورّد من القائمة —</option>
+              </select>
+              <!-- أو كتابة يدوية -->
+              <input id="pi-supplier" placeholder="أو اكتب اسم مورّد جديد مباشرةً..." list="pi-supplier-list" oninput="onPiSupplierInput()"
+                style="border:1.5px dashed var(--border);border-radius:10px;padding:8px 12px;font-size:.83rem;font-family:'Tajawal',sans-serif;width:100%">
               <datalist id="pi-supplier-list"></datalist>
+              <!-- زر إضافة مورد جديد -->
+              <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+                <button type="button" onclick="openPiAddSupplier()"
+                  style="background:var(--pk-pale);color:var(--pk);border:1.5px solid var(--pk);border-radius:12px;padding:5px 14px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">
+                  ➕ إضافة مورّد جديد
+                </button>
+                <span style="font-size:.72rem;color:var(--muted)">لو المورّد مش في القائمة اضغط إضافة أو اكتب اسمه فوق مباشرةً</span>
+              </div>
+              <!-- بطاقة إضافة مورد سريع مخفية -->
+              <div id="pi-add-sup-card" style="display:none;margin-top:10px;background:var(--pk-pale);border:1.5px solid var(--pk);border-radius:12px;padding:12px 16px">
+                <div style="font-weight:700;color:var(--deep);margin-bottom:8px;font-size:.85rem">➕ مورّد جديد</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                  <input id="pi-new-sup-name" placeholder="اسم المورّد *" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:.82rem;font-family:'Tajawal',sans-serif">
+                  <input id="pi-new-sup-phone" placeholder="رقم الهاتف" type="tel" maxlength="11" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:.82rem;font-family:'Tajawal',sans-serif">
+                  <input id="pi-new-sup-address" placeholder="العنوان (اختياري)" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:.82rem;font-family:'Tajawal',sans-serif">
+                  <input id="pi-new-sup-notes" placeholder="ملاحظات (اختياري)" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:.82rem;font-family:'Tajawal',sans-serif">
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button type="button" onclick="savePiNewSupplier()"
+                    style="background:var(--pk);color:#fff;border:none;border-radius:12px;padding:7px 18px;font-size:.82rem;font-weight:700;cursor:pointer">💾 حفظ وتحديد</button>
+                  <button type="button" onclick="document.getElementById('pi-add-sup-card').style.display='none'"
+                    style="background:var(--muted);color:#fff;border:none;border-radius:12px;padding:7px 14px;font-size:.82rem;cursor:pointer">إلغاء</button>
+                </div>
+              </div>
             </div>
             <div class="f-row" style="margin:0"><label>رقم هاتف المورّد</label><input id="pi-supplier-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
             <div class="f-row" style="margin:0"><label>رقم الفاتورة</label><input id="pi-number" placeholder="PI-001"></div>
@@ -6110,38 +6158,28 @@ async function initPORows() {
 function addPORow() {
   poRowCount++;
   const rid = 'po-r' + poRowCount;
-  // بناء قائمة المنتجات مع الكود
-  const opts = `<option value="">— اختر منتج أو اكتب يدوياً —</option>` +
-    PRODUCTS.map(p => {
-      const skuLabel = p.sku ? ` [${p.sku}]` : '';
-      const costLabel = p.cost ? ` (تكلفة: ${p.cost} ج.م)` : '';
-      const stockLabel = p.stock_qty != null ? ` ← متاح: ${p.stock_qty}` : '';
-      return `<option value="${p.id}" data-name="${p.name}" data-cost="${p.cost||''}" data-sku="${p.sku||''}" data-stock="${p.stock_qty??''}">${p.sku?'['+p.sku+'] ':''}${p.name}${costLabel}${stockLabel}</option>`;
-    }).join('');
 
   const tr = document.createElement('tr');
   tr.id = rid;
+  tr.dataset.prodId = '';
   tr.style.cssText = 'border-bottom:1px solid var(--border2)';
   tr.innerHTML = `
-    <td style="padding:6px 6px;min-width:200px">
-      <div style="display:flex;gap:4px;margin-bottom:4px">
-        <input id="${rid}-sku" placeholder="🏷 أدخل الكود (SKU)..." 
-          style="width:110px;border:1.5px solid var(--gd);border-radius:8px;padding:5px 8px;font-size:.78rem;outline:none;font-family:'Tajawal',sans-serif;background:var(--gd-pale);color:#7a5000;font-weight:700"
-          oninput="onPOSkuInput('${rid}')" title="أدخل كود المنتج مباشرة">
-        <span style="font-size:.7rem;color:var(--muted);margin:auto 0">أو</span>
+    <td style="padding:6px 6px;min-width:220px">
+      <div class="prod-search-wrap">
+        <input id="${rid}-search" class="prod-search-inp" placeholder="🔍 ابحث باسم الصنف أو الكود..." autocomplete="off"
+          oninput="onProdSearchInput('${rid}','po')" onfocus="onProdSearchFocus('${rid}')" onkeydown="onProdSearchKey(event,'${rid}','po')">
+        <input type="hidden" id="${rid}-sel" value="">
+        <input type="hidden" id="${rid}-sku" value="">
+        <div id="${rid}-dd" class="prod-search-dd"></div>
       </div>
-      <select id="${rid}-sel" onchange="onPOProdSelect('${rid}')"
-        style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:.82rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--deep);background:#fff;margin-bottom:4px">
-        ${opts}
-      </select>
-      <input id="${rid}-name" placeholder="أو اكتب اسم صنف آخر..." 
-        style="width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:5px 8px;font-size:.8rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--muted);background:#fdf4f8" 
+      <input id="${rid}-name" placeholder="أو اكتب اسم صنف غير مكود..."
+        style="width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:5px 8px;font-size:.8rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--muted);background:#fdf4f8;margin-top:4px"
         title="اسم بديل / مخصص">
+      <div id="${rid}-stock-hint" style="font-size:.62rem;color:var(--muted);margin-top:2px"></div>
     </td>
     <td style="padding:6px 4px;text-align:center">
       <input type="number" id="${rid}-qty" min="1" value="1" oninput="calcPORow('${rid}')"
         style="width:60px;border:1.5px solid var(--border);border-radius:8px;padding:6px 6px;font-size:.83rem;text-align:center;outline:none">
-      <div id="${rid}-stock-hint" style="font-size:.62rem;color:var(--muted);margin-top:2px"></div>
     </td>
     <td style="padding:6px 4px;text-align:center">
       <input type="number" id="${rid}-price" min="0" placeholder="0" oninput="calcPORow('${rid}')"
@@ -6154,6 +6192,184 @@ function addPORow() {
     </td>`;
   document.getElementById('po-rows').appendChild(tr);
 }
+
+// ══════════════════════════════════════
+// 🔍 SMART PRODUCT SEARCH — مشترك بين كل الفواتير
+// ══════════════════════════════════════
+function _buildSearchDD(rid, type, query) {
+  const q = query.trim().toLowerCase();
+  const dd = document.getElementById(rid + '-dd');
+  if (!dd) return;
+
+  let matches;
+  if (!q) {
+    // عرض كل الأصناف لو الحقل فاضي
+    matches = PRODUCTS.slice(0, 60);
+  } else {
+    matches = PRODUCTS.filter(p => {
+      const nameMatch = p.name && p.name.toLowerCase().includes(q);
+      const skuMatch  = p.sku  && p.sku.toLowerCase().includes(q);
+      return nameMatch || skuMatch;
+    }).slice(0, 50);
+  }
+
+  if (!matches.length) {
+    dd.innerHTML = `<div class="prod-search-empty">لا توجد نتائج للبحث "${query}"</div>`;
+    dd.classList.add('open');
+    return;
+  }
+
+  dd.innerHTML = matches.map((p, idx) => {
+    const sku   = p.sku  ? `<span class="psi-sku">${p.sku}</span>` : '';
+    let priceHint = '';
+    if (type === 'inv') {
+      priceHint = p.price ? `<span class="psi-cost">${p.price} ج.م</span>` : '';
+    } else {
+      priceHint = p.cost  ? `<span class="psi-cost">تكلفة: ${p.cost} ج.م</span>` : '';
+    }
+    let stockBadge = '';
+    if (p.stock_qty != null) {
+      const qty = parseInt(p.stock_qty);
+      const col = qty > 5 ? '#155724' : qty > 0 ? '#856404' : '#721c24';
+      stockBadge = `<span class="psi-stock" style="color:${col}">📦${qty}</span>`;
+    }
+    return `<div class="prod-search-item" data-idx="${idx}" onclick="selectProdInRow('${rid}','${type}',${p.id})">
+      ${sku}<span class="psi-name">${p.name}</span>${priceHint}${stockBadge}
+    </div>`;
+  }).join('');
+  dd.classList.add('open');
+}
+
+function onProdSearchFocus(rid) {
+  // فتح الـ dropdown عند التركيز — يعرض كل الأصناف
+  const inp = document.getElementById(rid + '-search');
+  const type = rid.startsWith('inv') ? 'inv' : rid.startsWith('pi') ? 'pi' : 'po';
+  if (!inp.classList.contains('selected')) {
+    _buildSearchDD(rid, type, inp.value || '');
+  }
+}
+
+function onProdSearchInput(rid, type) {
+  const inp = document.getElementById(rid + '-search');
+  // لو كان محدد من قبل ورجع يكتب، امسح الاختيار
+  if (inp.classList.contains('selected')) {
+    inp.classList.remove('selected');
+    document.getElementById(rid + '-sel').value = '';
+    const costEl = document.getElementById(rid + '-cost');
+    if (costEl) costEl.value = '0';
+  }
+  _buildSearchDD(rid, type, inp.value);
+}
+
+function onProdSearchKey(e, rid, type) {
+  const dd = document.getElementById(rid + '-dd');
+  if (!dd || !dd.classList.contains('open')) return;
+  const items = dd.querySelectorAll('.prod-search-item');
+  if (!items.length) return;
+  let focused = dd.querySelector('.prod-search-item.focused');
+  let idx = focused ? parseInt(focused.dataset.idx) : -1;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    idx = Math.min(idx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    idx = Math.max(idx - 1, 0);
+  } else if (e.key === 'Enter' && focused) {
+    e.preventDefault();
+    focused.click();
+    return;
+  } else if (e.key === 'Escape') {
+    dd.classList.remove('open');
+    return;
+  } else { return; }
+
+  items.forEach(it => it.classList.remove('focused'));
+  if (items[idx]) {
+    items[idx].classList.add('focused');
+    items[idx].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function selectProdInRow(rid, type, prodId) {
+  const prod = PRODUCTS.find(p => p.id === prodId);
+  if (!prod) return;
+
+  // إغلاق الـ dropdown
+  const dd = document.getElementById(rid + '-dd');
+  if (dd) dd.classList.remove('open');
+
+  // تحديث حقل البحث
+  const searchInp = document.getElementById(rid + '-search');
+  const skuPart   = prod.sku ? `[${prod.sku}] ` : '';
+  if (searchInp) {
+    searchInp.value = skuPart + prod.name;
+    searchInp.classList.add('selected');
+  }
+
+  // تخزين الـ id المخفي
+  const selHidden = document.getElementById(rid + '-sel');
+  if (selHidden) selHidden.value = prod.id;
+
+  // مسح حقل الاسم اليدوي
+  const nameInp = document.getElementById(rid + '-name');
+  if (nameInp) nameInp.value = '';
+
+  // تحديث السعر وباقي البيانات حسب نوع الفاتورة
+  const priceInp = document.getElementById(rid + '-price');
+  const hint     = document.getElementById(rid + '-price-hint');
+
+  if (type === 'inv') {
+    // فاتورة بيع — سعر البيع
+    const costInp = document.getElementById(rid + '-cost');
+    if (prod.price) {
+      if (priceInp) priceInp.value = prod.price;
+      if (hint) hint.innerHTML = `<span style="color:var(--success)">✓ سعر البيع من القاعدة</span>`;
+    } else {
+      if (priceInp) priceInp.value = '';
+      if (hint) hint.innerHTML = `<span style="color:var(--muted)">لا يوجد سعر — أدخله يدوياً</span>`;
+    }
+    if (costInp) costInp.value = prod.cost || 0;
+    calcInvRow(rid);
+
+  } else if (type === 'pi') {
+    // فاتورة شراء — تكلفة الشراء
+    if (prod.cost) {
+      if (priceInp) priceInp.value = prod.cost;
+      if (hint) hint.innerHTML = `<span style="color:var(--success)">✓ سعر الشراء من القاعدة</span>`;
+    } else {
+      if (priceInp) priceInp.value = '';
+      if (hint) hint.innerHTML = `<span style="color:var(--muted)">أدخل سعر الشراء يدوياً</span>`;
+    }
+    calcPiRow(rid);
+
+  } else if (type === 'po') {
+    // طلب الشراء
+    const skuHidden = document.getElementById(rid + '-sku');
+    if (skuHidden) skuHidden.value = prod.sku || '';
+    const stockHint = document.getElementById(rid + '-stock-hint');
+    if (stockHint && prod.stock_qty != null) {
+      const qty = parseInt(prod.stock_qty);
+      const col = qty > 5 ? '#155724' : qty > 0 ? '#856404' : '#721c24';
+      stockHint.innerHTML = `<span style="color:${col}">📦 متاح: ${qty}</span>`;
+    }
+    if (prod.cost) {
+      if (priceInp) priceInp.value = prod.cost;
+      if (hint) hint.innerHTML = `<span style="color:var(--success)">✓ سعر الشراء من القاعدة</span>`;
+    } else {
+      if (priceInp) priceInp.value = '';
+      if (hint) hint.innerHTML = `<span style="color:var(--muted)">لا يوجد سعر شراء — أدخله يدوياً</span>`;
+    }
+    calcPORow(rid);
+  }
+}
+
+// إغلاق كل الـ dropdowns عند النقر خارجها
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.prod-search-wrap')) {
+    document.querySelectorAll('.prod-search-dd.open').forEach(dd => dd.classList.remove('open'));
+  }
+});
 
 function onPOSkuInput(rid) {
   const skuInp = document.getElementById(rid + '-sku');
@@ -6243,19 +6459,17 @@ function getPOData() {
   let subtotal = 0;
   document.querySelectorAll('#po-rows tr').forEach(tr => {
     const rid = tr.id;
-    // اسم المنتج: من الـ select لو اتاختر، وإلا من الـ input اليدوي
-    const sel = document.getElementById(rid+'-sel');
-    const nameInp = document.getElementById(rid+'-name');
-    const skuInp = document.getElementById(rid+'-sku');
-    let name = '';
-    let sku = skuInp ? skuInp.value.trim() : '';
-    if (sel && sel.value) {
-      name = sel.options[sel.selectedIndex]?.dataset?.name || sel.options[sel.selectedIndex]?.text || '';
-      // إزالة الـ label الزيادة
-      name = name.replace(/\s*\[.*?\]/, '').replace(/\s*\(تكلفة:.*\)/, '').replace(/\s*←.*/, '').trim();
-      if (!sku) sku = sel.options[sel.selectedIndex]?.dataset?.sku || '';
+    const selHidden = document.getElementById(rid+'-sel');
+    const nameInp   = document.getElementById(rid+'-name');
+    const skuHidden = document.getElementById(rid+'-sku');
+    const searchInp = document.getElementById(rid+'-search');
+    let name = '', sku = skuHidden ? skuHidden.value.trim() : '';
+    if (selHidden && selHidden.value) {
+      const prod = PRODUCTS.find(p => p.id === parseInt(selHidden.value));
+      if (prod) { name = prod.name; if (!sku) sku = prod.sku || ''; }
     }
     if (!name && nameInp) name = nameInp.value.trim();
+    if (!name && searchInp) name = searchInp.value.trim();
     const qty   = parseFloat(document.getElementById(rid+'-qty')?.value)   || 0;
     const price = parseFloat(document.getElementById(rid+'-price')?.value) || 0;
     if (!name && !qty && !price) return;
@@ -6382,25 +6596,23 @@ async function initInvRows() {
 function addInvRow() {
   invRowCount++;
   const rid = 'inv-r' + invRowCount;
-  const opts = `<option value="">— اختر منتج أو اكتب يدوياً —</option>` +
-    PRODUCTS.map(p => {
-      const priceLabel = p.price ? ` (${p.price} ج.م)` : '';
-      return `<option value="${p.id}" data-name="${p.name}" data-price="${p.price||''}" data-cost="${p.cost||''}">${p.name}${priceLabel}</option>`;
-    }).join('');
 
   const tr = document.createElement('tr');
   tr.id = rid;
+  tr.dataset.prodId = '';
   tr.style.cssText = 'border-bottom:1px solid var(--border2)';
   tr.innerHTML = `
-    <td style="padding:6px 6px;min-width:170px">
-      <select id="${rid}-sel" onchange="onInvProdSelect('${rid}')"
-        style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:.82rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--deep);background:#fff;margin-bottom:4px">
-        ${opts}
-      </select>
-      <input id="${rid}-name" placeholder="أو اكتب اسم صنف آخر..."
-        style="width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:5px 8px;font-size:.8rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--muted);background:#fdf4f8"
+    <td style="padding:6px 6px;min-width:200px">
+      <div class="prod-search-wrap">
+        <input id="${rid}-search" class="prod-search-inp" placeholder="🔍 ابحث باسم الصنف أو الكود..." autocomplete="off"
+          oninput="onProdSearchInput('${rid}','inv')" onfocus="onProdSearchFocus('${rid}')" onkeydown="onProdSearchKey(event,'${rid}','inv')">
+        <input type="hidden" id="${rid}-sel" value="">
+        <input type="hidden" id="${rid}-cost" value="0">
+        <div id="${rid}-dd" class="prod-search-dd"></div>
+      </div>
+      <input id="${rid}-name" placeholder="أو اكتب اسم صنف غير مكود..."
+        style="width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:5px 8px;font-size:.8rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--muted);background:#fdf4f8;margin-top:4px"
         title="اسم بديل / مخصص">
-      <input type="hidden" id="${rid}-cost" value="0">
     </td>
     <td style="padding:6px 4px;text-align:center">
       <input type="number" id="${rid}-qty" min="1" value="1" oninput="calcInvRow('${rid}')"
@@ -6506,14 +6718,17 @@ function getInvData() {
   let sub = 0, discAmt = 0, totalCost = 0;
   document.querySelectorAll('#inv-rows tr').forEach(tr => {
     const rid = tr.id;
-    const sel = document.getElementById(rid+'-sel');
-    const nameInp = document.getElementById(rid+'-name');
-    let name = '';
-    if (sel && sel.value) {
-      name = sel.options[sel.selectedIndex]?.dataset?.name || '';
-      name = name.replace(/\s*\(.*\)/, '').trim();
+    const selHidden = document.getElementById(rid+'-sel');
+    const nameInp   = document.getElementById(rid+'-name');
+    const searchInp = document.getElementById(rid+'-search');
+    let name = '', prodId = null;
+    if (selHidden && selHidden.value) {
+      prodId = parseInt(selHidden.value);
+      const prod = PRODUCTS.find(p => p.id === prodId);
+      if (prod) name = prod.name;
     }
     if (!name && nameInp) name = nameInp.value.trim();
+    if (!name && searchInp) name = searchInp.value.trim();
     const qty   = parseFloat(document.getElementById(rid+'-qty')?.value)   || 0;
     const price = parseFloat(document.getElementById(rid+'-price')?.value) || 0;
     const disc  = parseFloat(document.getElementById(rid+'-disc')?.value)  || 0;
@@ -6681,23 +6896,71 @@ async function initPiRows() {
 async function loadSupplierDatalist() {
   try {
     const sups = await sbGet('suppliers', 'select=id,name,phone&order=name.asc');
-    window._SUPPLIERS = sups;
+    window._SUPPLIERS = sups || [];
+    // ── Dropdown مرئي ──
     const sel = document.getElementById('pi-supplier-select');
     if (sel) {
-      sel.innerHTML = '<option value="">— اختر من قائمة الموردين —</option>' +
-        sups.map(s => `<option value="${s.name}" data-phone="${s.phone||''}">${s.name}${s.phone?' — '+s.phone:''}</option>`).join('');
+      sel.innerHTML = '<option value="">— اختر مورّد من القائمة —</option>' +
+        sups.map(s => `<option value="${s.name}" data-phone="${s.phone||''}" data-id="${s.id}">${s.name}${s.phone?' — '+s.phone:''}</option>`).join('');
     }
-  } catch(e) {}
+    // ── Datalist للكتابة اليدوية ──
+    const dl = document.getElementById('pi-supplier-list');
+    if (dl) dl.innerHTML = sups.map(s => `<option value="${s.name}">${s.name}${s.phone?' — '+s.phone:''}</option>`).join('');
+  } catch(e) { console.warn('فشل تحميل الموردين:', e); }
+}
+
+function openPiAddSupplier() {
+  const card = document.getElementById('pi-add-sup-card');
+  if (!card) return;
+  card.style.display = card.style.display === 'none' ? 'block' : 'none';
+  if (card.style.display === 'block') {
+    // prefill name from what user typed
+    const typed = (document.getElementById('pi-supplier')?.value || '').trim();
+    const nameInp = document.getElementById('pi-new-sup-name');
+    if (nameInp && typed && !typed.includes('—')) nameInp.value = typed;
+    document.getElementById('pi-new-sup-name')?.focus();
+  }
+}
+
+async function savePiNewSupplier() {
+  const name  = (document.getElementById('pi-new-sup-name')?.value  || '').trim();
+  const phone = (document.getElementById('pi-new-sup-phone')?.value || '').trim();
+  const address = (document.getElementById('pi-new-sup-address')?.value || '').trim();
+  const notes = (document.getElementById('pi-new-sup-notes')?.value || '').trim();
+  if (!name) { toast('⚠️ أدخل اسم المورّد'); return; }
+  try {
+    const res = await sbPost('suppliers', { name, phone: phone||null, address: address||null, notes: notes||null });
+    const saved = Array.isArray(res) ? res[0] : res;
+    toast(`✅ تم إضافة المورّد "${name}" بنجاح`);
+    // أضفه لـ _SUPPLIERS وحدّث الـ dropdown
+    if (!window._SUPPLIERS) window._SUPPLIERS = [];
+    window._SUPPLIERS.push(saved || { name, phone });
+    await loadSupplierDatalist();
+    // حدّد المورّد الجديد تلقائياً
+    const sel = document.getElementById('pi-supplier-select');
+    if (sel) { sel.value = name; }
+    if (phone) { const ph = document.getElementById('pi-supplier-phone'); if(ph) ph.value = phone; }
+    document.getElementById('pi-supplier').value = '';
+    // أخفِ البطاقة وامسح الحقول
+    document.getElementById('pi-add-sup-card').style.display = 'none';
+    ['pi-new-sup-name','pi-new-sup-phone','pi-new-sup-address','pi-new-sup-notes'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+  } catch(e) { toast('⚠️ خطأ في الحفظ: ' + (e.message||e)); }
 }
 
 function onPiSupplierSelect() {
   const sel = document.getElementById('pi-supplier-select');
   if (!sel || !sel.value) return;
   const opt = sel.options[sel.selectedIndex];
-  // نقل اسم المورّد المختار لحقل النص ومسح الاختيار اليدوي
-  document.getElementById('pi-supplier').value = '';
+  // نضع الاسم في حقل النص اليدوي أيضاً
+  const inp = document.getElementById('pi-supplier');
+  if (inp) inp.value = '';
   const phone = opt.dataset.phone || '';
-  if (phone) document.getElementById('pi-supplier-phone').value = phone;
+  if (phone) { const ph = document.getElementById('pi-supplier-phone'); if(ph) ph.value = phone; }
+  // أخفِ بطاقة الإضافة لو كانت مفتوحة
+  const card = document.getElementById('pi-add-sup-card');
+  if (card) card.style.display = 'none';
 }
 
 function onPiSupplierInput() {
@@ -6715,21 +6978,21 @@ function onPiSupplierInput() {
 function addPiRow() {
   piRowCount++;
   const rid = 'pi-r' + piRowCount;
-  const opts = `<option value="">— اختر منتج أو اكتب يدوياً —</option>` +
-    PRODUCTS.map(p => {
-      const costLabel = p.cost ? ` (تكلفة: ${p.cost} ج.م)` : '';
-      return `<option value="${p.id}" data-name="${p.name}" data-cost="${p.cost||''}" data-sku="${p.sku||''}">${p.sku?'['+p.sku+'] ':''}${p.name}${costLabel}</option>`;
-    }).join('');
 
   const tr = document.createElement('tr');
   tr.id = rid;
+  tr.dataset.prodId = '';
   tr.style.cssText = 'border-bottom:1px solid var(--border2)';
   tr.innerHTML = `
-    <td style="padding:6px 6px;min-width:200px">
-      <select id="${rid}-sel" onchange="onPiProdSelect('${rid}')"
-        style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:.82rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--deep);background:#fff;margin-bottom:4px">${opts}</select>
-      <input id="${rid}-name" placeholder="أو اكتب اسم صنف آخر..."
-        style="width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:5px 8px;font-size:.8rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--muted);background:#fdf4f8">
+    <td style="padding:6px 6px;min-width:220px">
+      <div class="prod-search-wrap">
+        <input id="${rid}-search" class="prod-search-inp" placeholder="🔍 ابحث باسم الصنف أو الكود..." autocomplete="off"
+          oninput="onProdSearchInput('${rid}','pi')" onfocus="onProdSearchFocus('${rid}')" onkeydown="onProdSearchKey(event,'${rid}','pi')">
+        <input type="hidden" id="${rid}-sel" value="">
+        <div id="${rid}-dd" class="prod-search-dd"></div>
+      </div>
+      <input id="${rid}-name" placeholder="أو اكتب اسم صنف غير مكود..."
+        style="width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:5px 8px;font-size:.8rem;outline:none;font-family:'Tajawal',sans-serif;color:var(--muted);background:#fdf4f8;margin-top:4px">
     </td>
     <td style="padding:6px 4px;text-align:center">
       <input type="number" id="${rid}-qty" min="1" value="1" oninput="calcPiRow('${rid}')"
@@ -6798,15 +7061,17 @@ function getPiData() {
   let subtotal = 0;
   document.querySelectorAll('#pi-rows tr').forEach(tr => {
     const rid = tr.id;
-    const sel = document.getElementById(rid+'-sel');
-    const nameInp = document.getElementById(rid+'-name');
+    const selHidden = document.getElementById(rid+'-sel');
+    const nameInp   = document.getElementById(rid+'-name');
+    const searchInp = document.getElementById(rid+'-search');
     let name = '', prodId = null;
-    if (sel && sel.value) {
-      prodId = parseInt(sel.value);
-      name = sel.options[sel.selectedIndex]?.dataset?.name || '';
-      name = name.replace(/\s*\[.*?\]/, '').replace(/\s*\(تكلفة:.*\)/, '').trim();
+    if (selHidden && selHidden.value) {
+      prodId = parseInt(selHidden.value);
+      const prod = PRODUCTS.find(p => p.id === prodId);
+      if (prod) name = prod.name;
     }
     if (!name && nameInp) name = nameInp.value.trim();
+    if (!name && searchInp) name = searchInp.value.trim();
     const qty   = parseFloat(document.getElementById(rid+'-qty')?.value)   || 0;
     const price = parseFloat(document.getElementById(rid+'-price')?.value) || 0;
     if (!name && !qty && !price) return;
