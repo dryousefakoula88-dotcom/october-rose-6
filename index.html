@@ -7066,8 +7066,8 @@ function getPiData() {
     const searchInp = document.getElementById(rid+'-search');
     let name = '', prodId = null;
     if (selHidden && selHidden.value) {
-      prodId = parseInt(selHidden.value);
-      const prod = PRODUCTS.find(p => p.id === prodId);
+      prodId = selHidden.value;
+      const prod = PRODUCTS.find(p => String(p.id) === String(prodId));
       if (prod) name = prod.name;
     }
     if (!name && nameInp) name = nameInp.value.trim();
@@ -7116,12 +7116,13 @@ async function savePiOnly() {
     if (editId) {
       // عند تعديل الشراء: عكس الكميات القديمة ثم إضافة الجديدة وتحديث الخزينة
       try {
-        const oldRows = await sbGet('purchase_invoices', `id=eq.${editId}&select=items,pi_number,total`);
+        const _r = await apiCall(`${SB_URL}/rest/v1/purchase_invoices?id=eq.${editId}&select=items,pi_number,total`);
+        const oldRows = _r.ok ? await _r.json() : [];
         if (oldRows.length) {
           const oldItems = (() => { try { return JSON.parse(oldRows[0].items||'[]'); } catch { return []; } })();
           for (const item of oldItems) {
             if (item.prodId) {
-              const prod = PRODUCTS.find(p => p.id === item.prodId);
+              const prod = PRODUCTS.find(p => String(p.id) === String(item.prodId));
               if (prod) {
                 const reversed = Math.max(0, (prod.stock_qty || 0) - (item.qty || 0));
                 await sbPatch('products', prod.id, { stock_qty: reversed, in_stock: reversed > 0 });
@@ -7131,7 +7132,7 @@ async function savePiOnly() {
           }
           for (const row of d.rows) {
             if (row.prodId) {
-              const prod = PRODUCTS.find(p => p.id === row.prodId);
+              const prod = PRODUCTS.find(p => String(p.id) === String(row.prodId));
               if (prod) {
                 const newQty = (prod.stock_qty || 0) + (row.qty || 0);
                 await sbPatch('products', prod.id, { stock_qty: newQty, in_stock: true });
@@ -7142,7 +7143,8 @@ async function savePiOnly() {
           saveLocal('products', PRODUCTS);
           renderProds(curFilter);
           // تحديث قيد الخزينة
-          const trEntries = await sbGet('treasury', `ref_id=eq.${oldRows[0].pi_number}&type=eq.purchase_expense&select=id`);
+          const _tr = await apiCall(`${SB_URL}/rest/v1/treasury?ref_id=eq.${encodeURIComponent(oldRows[0].pi_number)}&type=eq.purchase_expense&select=id`);
+          const trEntries = _tr.ok ? await _tr.json() : [];
           if (d.payment !== 'آجل') {
             for (const tr of trEntries) {
               await sbPatch('treasury', tr.id, { amount: d.subtotal, description: `مصروف فاتورة شراء ${d.number} — ${d.supplier}`, ref_id: d.number });
@@ -7171,7 +7173,7 @@ async function savePiOnly() {
       // تحديث المخزون لكل صنف
       for (const row of d.rows) {
         if (row.prodId) {
-          const prod = PRODUCTS.find(p => p.id === row.prodId);
+          const prod = PRODUCTS.find(p => String(p.id) === String(row.prodId));
           if (prod) {
             const newQty = (prod.stock_qty || 0) + row.qty;
             try {
@@ -7225,6 +7227,76 @@ function resetPiForm() {
   initPiRows();
 }
 
+async function editPI(id) {
+  try {
+    // 1. إعادة تحميل المنتجات من قاعدة البيانات أولاً لضمان أحدث بيانات
+    try {
+      const _pr = await apiCall(`${SB_URL}/rest/v1/products?order=created_at.desc&select=id,name,cat,emoji,price,old_price,price_tbd,badge,in_stock,description,deposit,cost,usage,ingredients,tips,info,img_data,sku,stock_qty,supplier,supplier_phone,created_at`);
+      if (_pr.ok) { PRODUCTS = await _pr.json(); saveLocal('products', PRODUCTS); renderProds(curFilter); }
+    } catch(_) {}
+
+    // 2. جلب بيانات الفاتورة مباشرة
+    const r = await apiCall(`${SB_URL}/rest/v1/purchase_invoices?id=eq.${id}&select=*`);
+    if (!r.ok) throw new Error(await r.text());
+    const rows = await r.json();
+    if (!rows.length) { toast('⚠️ لم تُعثر على الفاتورة'); return; }
+    const pi = rows[0];
+    const items = (() => { try { return JSON.parse(pi.items||'[]'); } catch { return []; } })();
+
+    // 3. ضع الـ id أولاً حتى لا يستدعي swPiSubTab → initPiRows()
+    document.getElementById('pi-edit-id').value = pi.id;
+    swPiSubTab('new', document.getElementById('pi-subtab-new'));
+
+    // 4. تعبئة حقول الرأس
+    document.getElementById('pi-edit-label').textContent = `تعديل فاتورة شراء: ${pi.pi_number}`;
+    document.getElementById('pi-supplier').value        = pi.supplier || '';
+    document.getElementById('pi-supplier-phone').value  = pi.supplier_phone || '';
+    document.getElementById('pi-number').value          = pi.pi_number || '';
+    document.getElementById('pi-date').value            = pi.date || '';
+    document.getElementById('pi-payment').value         = pi.payment_method || 'كاش';
+    document.getElementById('pi-shipping').value        = pi.shipping || 0;
+    document.getElementById('pi-notes').value           = pi.notes || '';
+
+    // 5. إعادة بناء صفوف الأصناف
+    document.getElementById('pi-rows').innerHTML = '';
+    piRowCount = 0;
+    items.forEach(item => {
+      addPiRow();
+      const rid = 'pi-r' + piRowCount;
+      // البحث بـ id أولاً ثم بالاسم
+      const prod = PRODUCTS.find(p => String(p.id) === String(item.prodId)) ||
+                   PRODUCTS.find(p => p.name === item.name);
+
+      const searchEl = document.getElementById(rid + '-search');
+      const selEl    = document.getElementById(rid + '-sel');
+      const nameEl   = document.getElementById(rid + '-name');
+
+      if (prod) {
+        if (searchEl) searchEl.value = prod.name;
+        if (selEl)    selEl.value    = prod.id;
+        // تحديث dataset على الـ tr لاستخدامها في getPiData
+        const trEl = document.getElementById(rid);
+        if (trEl) trEl.dataset.prodId = prod.id;
+      } else {
+        // منتج غير مكود أو محذوف
+        if (nameEl) nameEl.value = item.name || '';
+      }
+
+      const qtyEl   = document.getElementById(rid + '-qty');
+      const priceEl = document.getElementById(rid + '-price');
+      if (qtyEl)   qtyEl.value   = item.qty   || 1;
+      if (priceEl) priceEl.value = item.price  || '';
+      calcPiRow(rid);
+    });
+
+    calcPiTotal();
+    toast('✏️ تم تحميل فاتورة الشراء للتعديل');
+  } catch(e) {
+    toast('⚠️ خطأ في تحميل فاتورة الشراء');
+    console.error(e);
+  }
+}
+
 async function loadPiList() {
   const el = document.getElementById('pi-list-body');
   el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">⏳ جارٍ التحميل...</p>';
@@ -7244,6 +7316,7 @@ async function loadPiList() {
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <span style="font-weight:700;color:var(--pk);font-size:.95rem">${(pi.total||0).toFixed(2)} ج.م</span>
+            <button onclick="editPI('${pi.id}')" style="background:var(--gd-pale);color:#7a5000;border:1px solid var(--gd);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">✏️ تعديل</button>
             <button onclick="reprintPI('${pi.id}')" style="background:var(--pk-pale);color:var(--pk2);border:1px solid var(--pk);border-radius:10px;padding:3px 12px;font-size:.75rem;cursor:pointer;font-weight:700">🖨️ طباعة</button>
             <button onclick="deletePiRec('${pi.id}')" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:10px;padding:3px 10px;font-size:.75rem;cursor:pointer">🗑</button>
           </div>
@@ -7278,7 +7351,7 @@ async function deletePiRec(id) {
       // خصم الكميات من المخزون (عكس الشراء)
       for (const item of items) {
         if (item.prodId) {
-          const prod = PRODUCTS.find(p => p.id === item.prodId);
+          const prod = PRODUCTS.find(p => String(p.id) === String(item.prodId));
           if (prod) {
             const newQty = Math.max(0, (prod.stock_qty || 0) - (item.qty || 0));
             try {
@@ -7452,22 +7525,46 @@ async function openSupplierProfile(id, name) {
     [s.phone?'📞 '+s.phone:'', s.email?'📧 '+s.email:'', s.address?'📍 '+s.address:'', s.notes?'📝 '+s.notes:''].filter(Boolean).join('&nbsp;&nbsp;');
   try {
     const enc = encodeURIComponent(name);
-    const [dr, pr] = await Promise.allSettled([
+    const [dr, pr, piR] = await Promise.allSettled([
       sbGet('supplier_debts',  'supplier_name=eq.'+enc+'&order=created_at.desc&select=*'),
-      sbGet('supplier_payments','supplier_name=eq.'+enc+'&order=created_at.desc&select=*').catch(()=>[])
+      sbGet('supplier_payments','supplier_name=eq.'+enc+'&order=created_at.desc&select=*').catch(()=>[]),
+      (async()=>{ const _r=await apiCall(`${SB_URL}/rest/v1/purchase_invoices?supplier=eq.${enc}&order=created_at.desc&select=pi_number,date,total,payment_method`); return _r.ok?await _r.json():[]; })()
     ]);
-    const dRows = dr.status==='fulfilled'?dr.value:[];
-    const pRows = pr.status==='fulfilled'?pr.value:[];
-    const tAmt  = dRows.reduce((a,r)=>a+(parseFloat(r.total_amount)||0),0);
-    const tPaid = dRows.reduce((a,r)=>a+(parseFloat(r.paid_amount)||0),0);
-    const tRem  = dRows.reduce((a,r)=>a+(parseFloat(r.remaining)||0),0);
+    const dRows  = dr.status==='fulfilled'?dr.value:[];
+    const pRows  = pr.status==='fulfilled'?pr.value:[];
+    const piRows = piR.status==='fulfilled'?piR.value:[];
+
+    // دمج: ابنِ map من supplier_debts، وأضف أي فاتورة مش موجودة من purchase_invoices
+    const debtMap = {};
+    dRows.forEach(d => { if(d.pi_number) debtMap[d.pi_number]=d; });
+    const mergedRows = [...dRows];
+    piRows.forEach(pi => {
+      if (!debtMap[pi.pi_number]) {
+        // فاتورة موجودة في purchase_invoices بس مش في supplier_debts — أضفها بحالتها
+        const paid   = pi.payment_method !== 'آجل' ? (pi.total||0) : 0;
+        const remain = pi.payment_method !== 'آجل' ? 0 : (pi.total||0);
+        mergedRows.push({
+          pi_number:    pi.pi_number,
+          date:         pi.date,
+          total_amount: pi.total||0,
+          paid_amount:  paid,
+          remaining:    remain,
+          status:       pi.payment_method !== 'آجل' ? 'مدفوع' : 'آجل',
+          _fromPI:      true
+        });
+      }
+    });
+
+    const tAmt  = mergedRows.reduce((a,r)=>a+(parseFloat(r.total_amount)||0),0);
+    const tPaid = mergedRows.reduce((a,r)=>a+(parseFloat(r.paid_amount)||0),0);
+    const tRem  = mergedRows.reduce((a,r)=>a+(parseFloat(r.remaining)||0),0);
     document.getElementById('sp-finance-summary').innerHTML = `
       <div style="background:#d4edda;border-radius:10px;padding:12px;text-align:center"><div style="font-size:.72rem;color:#155724">إجمالي الفواتير</div><div style="font-weight:800;color:#155724;font-size:1.05rem">${tAmt.toFixed(2)} ج.م</div></div>
       <div style="background:#cce5ff;border-radius:10px;padding:12px;text-align:center"><div style="font-size:.72rem;color:#004085">المدفوع</div><div style="font-weight:800;color:#004085;font-size:1.05rem">${tPaid.toFixed(2)} ج.م</div></div>
       <div style="background:${tRem>0?'#f8d7da':'#d4edda'};border-radius:10px;padding:12px;text-align:center"><div style="font-size:.72rem;color:${tRem>0?'#721c24':'#155724'}">المتبقي (دين)</div><div style="font-weight:800;color:${tRem>0?'#dc3545':'#28a745'};font-size:1.05rem">${tRem.toFixed(2)} ج.م</div></div>`;
-    document.getElementById('sp-debts-list').innerHTML = !dRows.length
+    document.getElementById('sp-debts-list').innerHTML = !mergedRows.length
       ? '<p style="color:var(--muted);font-size:.82rem;text-align:center;padding:12px">لا توجد فواتير مسجّلة</p>'
-      : dRows.map(d=>{
+      : mergedRows.map(d=>{
           const sc=d.status==='مدفوع'?'#155724':d.status==='مدفوع جزئي'?'#856404':'#721c24';
           const sb=d.status==='مدفوع'?'#d4edda':d.status==='مدفوع جزئي'?'#fff3cd':'#f8d7da';
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:.82rem;flex-wrap:wrap;gap:6px">
@@ -7480,7 +7577,7 @@ async function openSupplierProfile(id, name) {
           <div><span style="color:var(--muted)">${(p.created_at||'').split('T')[0]}</span> <span style="background:#d4edda;color:#155724;border-radius:6px;padding:1px 8px;font-size:.7rem">${p.method||'كاش'}</span> ${p.notes?`<span style="color:var(--muted);font-size:.75rem">${p.notes}</span>`:''}</div>
           <strong style="color:#28a745">${parseFloat(p.amount||0).toFixed(2)} ج.م</strong>
         </div>`).join('');
-  } catch(e) { document.getElementById('sp-debts-list').innerHTML='<p style="color:var(--danger);padding:12px;font-size:.82rem">⚠️ خطأ في التحميل</p>'; }
+  } catch(e) { document.getElementById('sp-debts-list').innerHTML='<p style="color:var(--danger);padding:12px;font-size:.82rem">⚠️ خطأ في التحميل</p>'; console.error(e); }
 }
 
 async function paySupplierDebt() {
