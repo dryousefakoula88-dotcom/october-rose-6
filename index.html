@@ -22,10 +22,118 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--deep);ove
 button{cursor:pointer;font-family:'Tajawal',sans-serif;}
 a{text-decoration:none;color:inherit;}
 
+/* ══ GLOBAL TRANSITION UPGRADES ══ */
+/* Respect reduced-motion: disable heavy animations */
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+
+/* Smooth backdrop fade for all overlays */
+.d-ov, .m-ov, .orders-panel, .cust-panel {
+  transition: background .25s ease;
+}
+/* Overlay backdrop: fade in */
+.d-ov.open, .m-ov.open, .orders-panel.open, .cust-panel.open {
+  animation: backdropIn .22s ease forwards;
+}
+@keyframes backdropIn {
+  from { background: rgba(0,0,0,0); }
+  to   { background: rgba(10,4,7,.88); }
+}
+/* popIn — smoother spring feel */
+@keyframes popIn {
+  0%  { transform: scale(.88) translateY(18px); opacity: 0; }
+  60% { transform: scale(1.025) translateY(-3px); opacity: 1; }
+  100%{ transform: scale(1) translateY(0); opacity: 1; }
+}
+/* Pop-out for closing */
+@keyframes popOut {
+  from { transform: scale(1) translateY(0); opacity: 1; }
+  to   { transform: scale(.9) translateY(14px); opacity: 0; }
+}
+/* Slide up from bottom (mobile sheets) */
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); opacity: .7; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+/* Fade in up — for product cards appearing */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* Cart badge bounce */
+@keyframes badgePop {
+  0%  { transform: scale(1); }
+  40% { transform: scale(1.55); }
+  70% { transform: scale(.85); }
+  100%{ transform: scale(1); }
+}
+/* Tab underline slide */
+@keyframes tabSlide {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+/* Ripple click effect */
+@keyframes ripple {
+  to { transform: scale(3.5); opacity: 0; }
+}
+/* Toast slide */
+@keyframes toastIn {
+  from { transform: translateY(60px) scale(.9); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes toastOut {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to   { transform: translateY(60px) scale(.9); opacity: 0; }
+}
+/* Shimmer for skeleton loading */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* ── PRODUCT CARD: appears with staggered fade ── */
+.prod-card {
+  animation: fadeInUp .35s ease both;
+}
+/* Stagger via nth-child up to 16 cards */
+.prod-card:nth-child(1){animation-delay:.03s}
+.prod-card:nth-child(2){animation-delay:.06s}
+.prod-card:nth-child(3){animation-delay:.09s}
+.prod-card:nth-child(4){animation-delay:.12s}
+.prod-card:nth-child(5){animation-delay:.15s}
+.prod-card:nth-child(6){animation-delay:.18s}
+.prod-card:nth-child(7){animation-delay:.21s}
+.prod-card:nth-child(8){animation-delay:.24s}
+.prod-card:nth-child(n+9){animation-delay:0s} /* no delay for chunked-in cards */
+
+/* ── RIPPLE on buttons ── */
+.ripple-host { position: relative; overflow: hidden; }
+.ripple-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.35);
+  width: 10px; height: 10px;
+  margin-top: -5px; margin-left: -5px;
+  pointer-events: none;
+  animation: ripple .55s ease-out forwards;
+  transform-origin: center;
+}
+
+/* ── CATEGORY CARD: staggered ── */
+.cat-card { animation: fadeInUp .3s ease both; }
+.cat-card:nth-child(1){animation-delay:.04s}
+.cat-card:nth-child(2){animation-delay:.08s}
+.cat-card:nth-child(3){animation-delay:.12s}
+.cat-card:nth-child(4){animation-delay:.16s}
+.cat-card:nth-child(5){animation-delay:.20s}
+.cat-card:nth-child(6){animation-delay:.24s}
+
 /* ── LOADING SCREEN ── */
 #loading-screen{
   position:fixed;inset:0;background:var(--dark);z-index:9999;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  transition: opacity .5s ease;
 }
 #loading-screen img{width:90px;height:90px;border-radius:50%;border:3px solid var(--gd);animation:pulse 1.5s infinite;}
 #loading-screen p{color:var(--gd);font-size:1rem;letter-spacing:2px;}
@@ -57,7 +165,14 @@ header{background:var(--dark);padding:0 24px;height:68px;display:flex;align-item
 .hdr-btn .ico{font-size:1.15rem;}
 .hdr-btn .sub-lbl{font-size:.65rem;color:var(--gd);font-weight:700;display:block;}
 .cart-btn-wrap{position:relative;}
-.cart-bdg{position:absolute;top:-5px;right:-5px;background:var(--pk);color:#fff;border-radius:50%;width:17px;height:17px;font-size:.6rem;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.cart-bdg{
+  position:absolute;top:-5px;right:-5px;
+  background:var(--pk);color:#fff;border-radius:50%;
+  width:17px;height:17px;font-size:.6rem;
+  display:flex;align-items:center;justify-content:center;font-weight:700;
+  transition:transform .2s cubic-bezier(.34,1.8,.64,1);
+}
+.cart-bdg.pop{animation:badgePop .35s cubic-bezier(.34,1.8,.64,1);}
 
 /* ── NAVBAR ── */
 .navbar{background:linear-gradient(90deg,var(--deep),#3d0a22);padding:0 24px;display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none;}
@@ -242,9 +357,23 @@ body.staff-sales .p-hbtn.del-btn,body.manager .p-hbtn.del-btn{display:flex;}
 body.staff-sales .staff-only,body.manager .staff-only,body.asst-manager .staff-only{display:inline-flex;}
 
 /* ══ PRODUCT DETAIL OVERLAY — CLEAN FINAL ══ */
-.d-ov{display:none;position:fixed;inset:0;background:rgba(10,4,7,.88);z-index:2000;align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;}
-.d-ov.open{display:flex;}
-.d-box{background:#fff;border-radius:20px;width:100%;max-width:960px;margin:auto;box-shadow:0 40px 100px rgba(0,0,0,.6);animation:popIn .3s ease;overflow:hidden;}
+.d-ov{
+  display:none;position:fixed;inset:0;
+  background:rgba(10,4,7,0);
+  z-index:2000;align-items:flex-start;justify-content:center;
+  padding:10px;overflow-y:auto;
+  transition:background .28s ease;
+}
+.d-ov.open{display:flex;background:rgba(10,4,7,.88);}
+.d-ov.closing{background:rgba(10,4,7,0)!important;}
+.d-ov.closing .d-box{animation:popOut .22s ease forwards;}
+.d-box{
+  background:#fff;border-radius:20px;width:100%;max-width:960px;margin:auto;
+  box-shadow:0 40px 100px rgba(0,0,0,.6);
+  animation:popIn .38s cubic-bezier(.34,1.35,.64,1);
+  overflow:hidden;
+  will-change:transform,opacity;
+}
 .d-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--dark);gap:10px;flex-wrap:wrap;}
 .d-close-btn2{background:rgba(255,255,255,.1);color:#c4a0b4;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;font-size:.8rem;cursor:pointer;transition:.2s;}
 .d-close-btn2:hover{background:var(--pk);color:#fff;border-color:var(--pk);}
@@ -336,9 +465,22 @@ body.asst-manager .p-hbtn.del-btn{display:flex;}
 body:not(.manager):not(.staff-orders):not(.staff-sales):not(.asst-manager) .d-admin-controls{display:none !important;visibility:hidden !important;pointer-events:none !important;}
 
 /* Customer portal styles */
-.cust-panel{position:fixed;inset:0;background:rgba(10,4,7,.92);z-index:6000;display:none;align-items:flex-start;justify-content:center;padding:14px;overflow-y:auto;}
-.cust-panel.open{display:flex;}
-.cust-box{background:var(--cream);border-radius:20px;width:100%;max-width:680px;margin:auto;box-shadow:0 40px 100px rgba(0,0,0,.6);animation:popIn .3s ease;overflow:hidden;}
+.cust-panel{
+  position:fixed;inset:0;
+  background:rgba(10,4,7,0);z-index:6000;
+  display:none;align-items:flex-start;justify-content:center;
+  padding:14px;overflow-y:auto;
+  transition:background .25s ease;
+}
+.cust-panel.open{display:flex;background:rgba(10,4,7,.92);}
+.cust-panel.closing{background:rgba(10,4,7,0)!important;}
+.cust-panel.closing .cust-box{animation:popOut .2s ease forwards;}
+.cust-box{
+  background:var(--cream);border-radius:20px;width:100%;max-width:680px;margin:auto;
+  box-shadow:0 40px 100px rgba(0,0,0,.6);
+  animation:popIn .35s cubic-bezier(.34,1.35,.64,1);
+  overflow:hidden;will-change:transform,opacity;
+}
 .cust-head{background:var(--dark);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
 .cust-head h3{color:var(--gd);font-size:1.1rem;font-weight:700;}
 .cust-body{padding:20px;}
@@ -411,9 +553,22 @@ body:not(.manager):not(.staff-orders):not(.staff-sales):not(.asst-manager) .d-ad
 .d-box.edit-mode #d-photo{max-width:280px !important;max-height:180px !important;object-fit:contain !important;}
 
 /* ── ORDERS PANEL ── */
-.orders-panel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;}
-.orders-panel.open{display:flex;}
-.orders-box{background:#fff;border-radius:20px;width:100%;max-width:900px;margin:auto;box-shadow:0 40px 100px rgba(0,0,0,.5);animation:popIn .3s ease;overflow:hidden;}
+.orders-panel{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0);z-index:3000;
+  align-items:flex-start;justify-content:center;
+  padding:16px;overflow-y:auto;
+  transition:background .25s ease;
+}
+.orders-panel.open{display:flex;background:rgba(0,0,0,.75);}
+.orders-panel.closing{background:rgba(0,0,0,0)!important;}
+.orders-panel.closing .orders-box{animation:popOut .2s ease forwards;}
+.orders-box{
+  background:#fff;border-radius:20px;width:100%;max-width:900px;margin:auto;
+  box-shadow:0 40px 100px rgba(0,0,0,.5);
+  animation:popIn .35s cubic-bezier(.34,1.35,.64,1);
+  overflow:hidden;will-change:transform,opacity;
+}
 .orders-head{background:var(--dark);color:var(--gd);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;}
 .orders-head h3{font-family:'Playfair Display',serif;font-size:1.2rem;}
 .orders-body{padding:20px;}
@@ -583,9 +738,20 @@ body.manager .manager-del-order{display:inline-block;}
 .cs-wa-btn:hover{box-shadow:0 6px 18px rgba(37,211,102,.35);}
 
 /* ── MODALS ── */
-.m-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:5000;align-items:center;justify-content:center;padding:14px;}
+.m-ov{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.65);z-index:5000;
+  align-items:center;justify-content:center;padding:14px;
+}
 .m-ov.open{display:flex;}
-.m-box{background:var(--cream);border-radius:18px;padding:28px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 28px 70px rgba(0,0,0,.4);animation:popIn .28s ease;}
+.m-box{
+  background:var(--cream);border-radius:18px;padding:28px;
+  width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+  box-shadow:0 28px 70px rgba(0,0,0,.4);
+  animation:popIn .32s cubic-bezier(.34,1.4,.64,1);
+  will-change:transform,opacity;
+}
+.m-ov.closing .m-box { animation:popOut .2s ease forwards; }
 .m-box h3{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--deep);margin-bottom:20px;}
 .f-row{margin-bottom:12px;}
 .f-row label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:5px;font-weight:600;}
@@ -655,8 +821,19 @@ body.manager .adm-float{display:block;}
 .out-of-stock{opacity:.85;}
 .stock-btn{font-size:.85rem!important;}
 
-.toast{position:fixed;bottom:20px;right:22px;background:var(--dark);color:var(--gd);padding:10px 18px;border-radius:46px;font-weight:600;z-index:9000;transform:translateY(80px);opacity:0;transition:.32s;border:1px solid var(--gd);font-size:.84rem;max-width:280px;}
-.toast.show{transform:translateY(0);opacity:1;}
+.toast{
+  position:fixed;bottom:20px;right:22px;
+  background:var(--dark);color:var(--gd);
+  padding:10px 18px;border-radius:46px;
+  font-weight:600;z-index:9000;
+  transform:translateY(70px) scale(.9);opacity:0;
+  transition:transform .35s cubic-bezier(.34,1.4,.64,1), opacity .3s ease;
+  border:1px solid rgba(212,160,23,.5);
+  font-size:.84rem;max-width:300px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  will-change:transform,opacity;
+}
+.toast.show{transform:translateY(0) scale(1);opacity:1;}
 
 /* ── DB STATUS INDICATOR ── */
 .db-status{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:8px 18px;border-radius:30px;font-size:.78rem;z-index:9000;display:none;align-items:center;gap:8px;}
@@ -849,7 +1026,7 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
     animation:slideUpSheet .28s cubic-bezier(.4,0,.2,1) !important;
   }
   @keyframes slideUpSheet{
-    from{transform:translateY(40px);opacity:.8;}
+    from{transform:translateY(100%);opacity:.7;}
     to{transform:translateY(0);opacity:1;}
   }
   /* Drag handle pill on bottom sheets */
@@ -8547,6 +8724,234 @@ document.addEventListener('DOMContentLoaded', function() {
     if (active) active.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
   };
 });
+
+// ══════════════════════════════════════
+// 🔊 GENTLE SOUND ENGINE — Web Audio API
+// ══════════════════════════════════════
+(function() {
+  let _ctx = null;
+  function _ac() {
+    if (!_ctx) {
+      try { _ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+    // Resume if suspended (mobile browsers)
+    if (_ctx && _ctx.state === 'suspended') _ctx.resume().catch(()=>{});
+    return _ctx;
+  }
+
+  function _playTone(freq, type, vol, dur, delay) {
+    const ac = _ac(); if (!ac) return;
+    const t = ac.currentTime + (delay||0);
+    try {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(vol||0.10, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + (dur||0.12));
+      osc.start(t);
+      osc.stop(t + (dur||0.12) + 0.01);
+    } catch(e) {}
+  }
+
+  // 🌸 Open modal — soft ascending chime
+  window.sfxOpen = function() {
+    _playTone(520, 'sine', 0.08, 0.10, 0);
+    _playTone(680, 'sine', 0.06, 0.14, 0.07);
+  };
+
+  // 🌙 Close — gentle descending
+  window.sfxClose = function() {
+    _playTone(520, 'sine', 0.07, 0.09, 0);
+    _playTone(380, 'sine', 0.05, 0.12, 0.055);
+  };
+
+  // 🛒 Add to cart — cheerful 3-note chime
+  window.sfxCart = function() {
+    _playTone(660, 'sine', 0.09, 0.09, 0);
+    _playTone(830, 'sine', 0.08, 0.11, 0.065);
+    _playTone(990, 'sine', 0.06, 0.15, 0.13);
+  };
+
+  // ❌ Remove — soft descend
+  window.sfxRemove = function() {
+    _playTone(440, 'sine', 0.07, 0.09, 0);
+    _playTone(330, 'sine', 0.05, 0.12, 0.06);
+  };
+
+  // 🖱️ Tap / tab
+  window.sfxTap = function() {
+    _playTone(780, 'sine', 0.05, 0.06, 0);
+  };
+
+  // 💾 Save success — warm ascending chord
+  window.sfxSave = function() {
+    _playTone(520, 'sine', 0.08, 0.15, 0);
+    _playTone(660, 'sine', 0.07, 0.15, 0.06);
+    _playTone(780, 'sine', 0.06, 0.20, 0.12);
+  };
+
+  // ⚠️ Error — soft warning pulse
+  window.sfxError = function() {
+    _playTone(320, 'triangle', 0.09, 0.12, 0);
+    _playTone(280, 'triangle', 0.07, 0.15, 0.10);
+  };
+})();
+
+// ══════════════════════════════════════
+// 💫 RIPPLE EFFECT ON INTERACTIVE ELEMENTS
+// ══════════════════════════════════════
+document.addEventListener('pointerdown', function(e) {
+  const btn = e.target.closest(
+    'button, .btn-pk, .btn-gd, .p-add, .btn-add-cart, ' +
+    '.m-save, .m-cancel, .ftab, .cat-card, .hdr-btn, .nlink'
+  );
+  if (!btn) return;
+  if (!btn.classList.contains('ripple-host')) btn.classList.add('ripple-host');
+  const r = btn.getBoundingClientRect();
+  const c = document.createElement('span');
+  c.className = 'ripple-circle';
+  c.style.left = (e.clientX - r.left - 5) + 'px';
+  c.style.top  = (e.clientY - r.top  - 5) + 'px';
+  btn.appendChild(c);
+  c.addEventListener('animationend', () => c.remove(), {once: true});
+}, {passive: true});
+
+// ══════════════════════════════════════
+// 🔔 CART BADGE POP ANIMATION
+// ══════════════════════════════════════
+const _origAddCart = window.addCart;
+window.addCart = function(id) {
+  _origAddCart && _origAddCart(id);
+  sfxCart();
+  const bdg = document.getElementById('cart-bdg');
+  if (bdg) {
+    bdg.classList.remove('pop');
+    void bdg.offsetWidth;
+    bdg.classList.add('pop');
+    bdg.addEventListener('animationend', () => bdg.classList.remove('pop'), {once: true});
+  }
+};
+
+// ══════════════════════════════════════
+// 🎭 SMOOTH ANIMATED CLOSE FOR ALL OVERLAYS
+// ══════════════════════════════════════
+function _animatedClose(overlayId, innerSel, closeFn) {
+  const ov = document.getElementById(overlayId);
+  if (!ov) { closeFn && closeFn(); return; }
+  const box = ov.querySelector(innerSel);
+  if (!box) { closeFn && closeFn(); return; }
+  ov.classList.add('closing');
+  box.style.animation = 'popOut .22s cubic-bezier(.4,0,.6,1) forwards';
+  setTimeout(() => {
+    ov.classList.remove('closing');
+    box.style.animation = '';
+    closeFn && closeFn();
+  }, 210);
+}
+
+// Wrap closeDetail
+const _origCloseDetail = window.closeDetail;
+window.closeDetail = function() {
+  sfxClose();
+  _animatedClose('d-ov', '.d-box', _origCloseDetail);
+};
+
+// Wrap closeOrders
+const _origCloseOrders = window.closeOrders;
+window.closeOrders = function() {
+  sfxClose();
+  _animatedClose('orders-panel', '.orders-box', _origCloseOrders);
+};
+
+// Wrap closeMod
+const _origCloseMod = window.closeMod;
+window.closeMod = function(id) {
+  sfxClose();
+  const ov = document.getElementById(id);
+  if (!ov) return;
+  const box = ov.querySelector('.m-box');
+  if (!box) { _origCloseMod && _origCloseMod(id); return; }
+  ov.classList.add('closing');
+  box.style.animation = 'popOut .2s ease forwards';
+  setTimeout(() => {
+    ov.classList.remove('closing');
+    box.style.animation = '';
+    _origCloseMod && _origCloseMod(id);
+  }, 185);
+};
+
+// Wrap openMod with sound
+const _origOpenMod = window.openMod;
+window.openMod = function(id) {
+  sfxOpen();
+  _origOpenMod && _origOpenMod(id);
+};
+
+// Wrap closeCart
+const _origCloseCart = window.closeCart;
+window.closeCart = function() {
+  sfxClose();
+  _origCloseCart && _origCloseCart();
+};
+
+// Wrap openCart
+const _origOpenCart = window.openCart;
+window.openCart = function() {
+  sfxOpen();
+  _origOpenCart && _origOpenCart();
+};
+
+// Wrap closeCustPanel
+const _origCloseCustPanel = window.closeCustPanel;
+window.closeCustPanel = function() {
+  sfxClose();
+  _animatedClose('cust-panel', '.cust-box', _origCloseCustPanel);
+};
+
+// Wrap openDetail
+const _origOpenDetail = window.openDetail;
+window.openDetail = async function(id) {
+  sfxOpen();
+  return _origOpenDetail && _origOpenDetail(id);
+};
+
+// Wrap closeDash / openDash
+const _origCloseDash = window.closeDash;
+window.closeDash = function() {
+  sfxClose();
+  _origCloseDash && _origCloseDash();
+};
+const _origOpenDash = window.openDash;
+window.openDash = async function() {
+  sfxOpen();
+  return _origOpenDash && _origOpenDash();
+};
+
+// Wrap remFromCart
+const _origRemFromCart = window.remFromCart;
+window.remFromCart = function(id) {
+  sfxRemove();
+  _origRemFromCart && _origRemFromCart(id);
+};
+
+// ══════════════════════════════════════
+// 💛 TOAST: sound based on content
+// ══════════════════════════════════════
+const _origToast = window.toast;
+window.toast = function(msg, dur) {
+  if (msg && (msg.includes('⚠️') || msg.includes('خطأ'))) sfxError();
+  else if (msg && (msg.includes('✅') || msg.includes('✦') || msg.includes('تم'))) sfxSave();
+  _origToast && _origToast(msg, dur);
+};
+
+// ══════════════════════════════════════
+// 🎯 NAV TABS: sound on tap
+// ══════════════════════════════════════
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.ftab, .d-tab, .s-tab, .dash-nav-btn, .nlink')) sfxTap();
+}, {passive: true});
 </script>
 </body>
 </html>
