@@ -2920,7 +2920,7 @@ function npGetSupplierName() {
     </div>
     <!-- Login -->
     <div id="cust-login-form">
-      <div class="f-row" style="text-align:right"><label>البريد الإلكتروني</label><input id="cl-email" type="email" placeholder="example@email.com"></div>
+      <div class="f-row" style="text-align:right"><label>📱 رقم الموبايل *</label><input id="cl-phone" type="tel" placeholder="01xxxxxxxxx" maxlength="11" inputmode="numeric" onkeydown="if(event.key==='Enter')doCustLogin()"></div>
       <div class="f-row" style="text-align:right"><label>كلمة المرور</label>
         <div class="pw-wrap"><input type="password" id="cl-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doCustLogin()"><button class="pw-eye" onclick="togglePw('cl-pass',this)">👁</button></div>
       </div>
@@ -2931,9 +2931,9 @@ function npGetSupplierName() {
     </div>
     <!-- Register -->
     <div id="cust-reg-form" style="display:none">
-      <div class="f-row" style="text-align:right"><label>الاسم *</label><input id="cr-name" placeholder="اسمك "></div>
-      <div class="f-row" style="text-align:right"><label>البريد الإلكتروني *</label><input id="cr-email" type="email" placeholder="example@email.com"></div>
-      <div class="f-row" style="text-align:right"><label>رقم الهاتف</label><input id="cr-phone" type="tel" placeholder="1xx xxx xxxx" maxlength="11"></div>
+      <div class="f-row" style="text-align:right"><label>الاسم *</label><input id="cr-name" placeholder="اسمك"></div>
+      <div class="f-row" style="text-align:right"><label>📱 رقم الموبايل *</label><input id="cr-phone" type="tel" placeholder="01xxxxxxxxx" maxlength="11" inputmode="numeric"></div>
+      <div class="f-row" style="text-align:right"><label>البريد الإلكتروني <span style="color:var(--muted);font-size:.75rem">(اختياري)</span></label><input id="cr-email" type="email" placeholder="example@email.com"></div>
       <div class="f-row" style="text-align:right"><label>كلمة المرور *</label>
         <div class="pw-wrap"><input type="password" id="cr-pass" placeholder="••••••••"><button class="pw-eye" onclick="togglePw('cr-pass',this)">👁</button></div>
       </div>
@@ -2971,6 +2971,19 @@ function toast(msg, dur=2800) {
 }
 
 // ══ SUPABASE API CALL (with dual-key fallback) ══
+// ══════════════════════════════════════════════
+// ⚡ SPEED LAYER — Cache + Dedup + Parallel
+// ══════════════════════════════════════════════
+
+// 1. In-memory request deduplication
+//    نفس الـ URL بيتطلب مرة واحدة بس حتى لو اتنادى 10 مرات في نفس الوقت
+const _pendingReqs = {};
+
+// 2. Stale-While-Revalidate memory cache
+//    بيرجع النتيجة فوراً من الكاش وفي الخلفية يحدث
+const _memCache = {};
+const CACHE_TTL = 30000; // 30 ثانية — بعدها يجيب من السيرفر
+
 async function apiCall(url, opts={}) {
   const {headers: extraH, ...o} = opts;
   const h1 = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...(extraH||{}) };
@@ -2980,10 +2993,7 @@ async function apiCall(url, opts={}) {
   return r;
 }
 
-async function sbGet(table, query='') {
-  const r = await apiCall(`${SB_URL}/rest/v1/${table}?${query}`);
-  if (!r.ok) throw new Error(await r.text());
-  const d = await r.json();
+function _normalizeRows(d) {
   if (Array.isArray(d)) d.forEach(row => {
     if (!Array.isArray(row.images)) row.images = [];
     if (!Array.isArray(row.usage)) row.usage = [];
@@ -2991,17 +3001,70 @@ async function sbGet(table, query='') {
   });
   return d;
 }
+
+async function sbGet(table, query='') {
+  const url = `${SB_URL}/rest/v1/${table}?${query}`;
+  const isReadOnly = !query.includes('eq.') || query.startsWith('order=') || query.startsWith('select=') || query.startsWith('type=') || query.startsWith('limit=');
+
+  // ── Deduplication: نفس الـ request مش بيتبعت مرتين
+  if (isReadOnly && _pendingReqs[url]) return _pendingReqs[url];
+
+  // ── Memory cache: لو في نتيجة محفوظة ولسه طازة ارجعها فوراً
+  const cached = _memCache[url];
+  if (cached && (Date.now() - cached.ts) < CACHE_TTL) {
+    // Revalidate في الخلفية بدون ما ينتظر
+    _revalidate(url);
+    return JSON.parse(cached.data);
+  }
+
+  const promise = _fetchSb(url);
+  if (isReadOnly) _pendingReqs[url] = promise;
+  const result = await promise;
+  if (isReadOnly) delete _pendingReqs[url];
+  return result;
+}
+
+async function _fetchSb(url) {
+  const r = await apiCall(url);
+  if (!r.ok) throw new Error(await r.text());
+  const d = await r.json();
+  _normalizeRows(d);
+  // احفظ في memory cache
+  _memCache[url] = { data: JSON.stringify(d), ts: Date.now() };
+  return d;
+}
+
+function _revalidate(url) {
+  if (_pendingReqs[url]) return; // already pending
+  const p = _fetchSb(url).catch(() => {});
+  _pendingReqs[url] = p;
+  p.finally(() => delete _pendingReqs[url]);
+}
+
+// ── Parallel fetch: جيب جداول متعددة في نفس الوقت
+async function sbGetAll(requests) {
+  return Promise.all(requests.map(([table, query]) => sbGet(table, query || '')));
+}
+
+// ── Cache invalidation: امسح كاش جدول معين لما يتعدل
+function _invalidateCache(table) {
+  const prefix = `${SB_URL}/rest/v1/${table}`;
+  Object.keys(_memCache).forEach(k => { if (k.startsWith(prefix)) delete _memCache[k]; });
+}
 async function sbPost(table, data) {
+  _invalidateCache(table);
   const r = await apiCall(`${SB_URL}/rest/v1/${table}`, { method:'POST', body:JSON.stringify(data) });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function sbPatch(table, id, data) {
+  _invalidateCache(table);
   const r = await apiCall(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, { method:'PATCH', body:JSON.stringify(data) });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function sbDelete(table, id) {
+  _invalidateCache(table);
   const r = await apiCall(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, { method:'DELETE' });
   if (!r.ok) throw new Error(await r.text());
   return true;
@@ -3055,14 +3118,17 @@ async function init() {
 
   // ① INSTANT: Load from localStorage cache first (works even offline)
   const cached = loadLocal('products');
+  const cachedAt = parseInt(localStorage.getItem('or6_products_ts') || '0');
+  const cacheAge = Date.now() - cachedAt;
+  const cacheStale = cacheAge > 86400000; // أقدم من 24 ساعة → تجديد إجباري
+
   if (cached && cached.length > 0) {
     PRODUCTS = cached;
     document.getElementById('stat-n').textContent = PRODUCTS.length;
     renderCats();
     renderProds('all');
-    hideLoader();
+    hideLoader(); // اعرض الكاش فوراً دايماً — السيرفر هيحدث في الخلفية
   } else {
-    // Show site with empty state while loading
     renderCats();
     renderProds('all');
     setTimeout(hideLoader, 1500);
@@ -3072,31 +3138,36 @@ async function init() {
   const cachedSettings = loadLocal('settings');
   if (cachedSettings) { SETTINGS = cachedSettings; applySettings(); }
 
-  // ② Sync with Supabase
+  // Safety net: لو الـ API اتأخر أكتر من 8 ثانية نخفي اللودر بالقوة
+  setTimeout(() => hideLoader(), 8000);
+
+  // ② Sync with Supabase — المنتجات والإعدادات أولاً بالتوازي، الطلبات لاحقاً
   try {
-    PRODUCTS = await sbGet('products', 'order=created_at.desc&select=id,name,cat,emoji,price,old_price,price_tbd,badge,in_stock,description,deposit,cost,usage,ingredients,tips,info,img_data,sku,stock_qty,supplier,supplier_phone,created_at');
-    saveLocal('products', PRODUCTS);
-    document.getElementById('stat-n').textContent = PRODUCTS.length;
-    renderCats();
-    renderProds('all');
-    buildProdDatalist();
+    const [prods, sets] = await Promise.allSettled([
+      sbGet('products', 'order=created_at.desc&select=id,name,cat,emoji,price,old_price,price_tbd,badge,in_stock,description,deposit,cost,usage,ingredients,tips,info,img_data,sku,stock_qty,supplier,supplier_phone,created_at'),
+      sbGet('settings', 'limit=1'),
+    ]);
 
-    try {
-      const sets = await sbGet('settings', 'limit=1');
-      if (sets && sets.length > 0) {
-        SETTINGS = sets[0];
-        saveLocal('settings', SETTINGS);
-        applySettings();
-      }
-    } catch(e) {}
-
-    try {
-      const ords = await sbGet('orders', 'select=id');
-      document.getElementById('stat-o').textContent = ords.length;
-    } catch(e) {}
+    if (prods.status === 'fulfilled') {
+      PRODUCTS = prods.value;
+      saveLocal('products', PRODUCTS);
+      localStorage.setItem('or6_products_ts', String(Date.now()));
+      document.getElementById('stat-n').textContent = PRODUCTS.length;
+      renderCats(); renderProds('all'); buildProdDatalist();
+    }
+    if (sets.status === 'fulfilled' && sets.value?.length > 0) {
+      SETTINGS = sets.value[0];
+      saveLocal('settings', SETTINGS);
+      applySettings();
+    }
 
     showDbStatus('✓ متصل بقاعدة البيانات', false);
     hideLoader();
+
+    // جلب عدد الطلبات في الخلفية بعد ما المنتجات ظهرت
+    sbGet('orders', 'select=id').then(ords => {
+      document.getElementById('stat-o').textContent = ords.length;
+    }).catch(() => {});
 
   } catch(err) {
     console.error('Supabase sync error:', err.message);
@@ -3275,21 +3346,13 @@ function renderCats() {
 function catName(id) { return CATS.find(c => c.id === id)?.name || id; }
 function bdgLabel(b) { return {new:'جديد',sale:'خصم',best:'الأكثر مبيعاً'}[b] || ''; }
 
-function renderProds(filter = 'all') {
-  let list = filter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === filter);
-  const q = document.getElementById('s-input').value.trim().toLowerCase();
-  if (q) list = list.filter(p => (p.name||'').toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
-
-  const canEdit = currentUser && ['manager','sales'].includes(currentUser.role);
-  const g = document.getElementById('prods-grid');
-  if (!list.length) { g.innerHTML = '<p class="no-prods">لا توجد منتجات في هذه الفئة حتى الآن</p>'; return; }
-
-  g.innerHTML = list.map(p => `
+function _buildProdCardHTML(p, canEdit) {
+  return `
     <div class="prod-card ${p.in_stock===false?'out-of-stock':''}" onclick="openDetail('${p.id}')">
       ${p.badge ? `<span class="p-badge bg-${p.badge}">${bdgLabel(p.badge)}</span>` : ''}
       <span class="stock-tag ${p.in_stock===false?'tag-out':'tag-in'}">${p.in_stock===false?'نفذت الكمية ❌':'متاح ✅'}</span>
       <div class="p-img-wrap">
-        ${p.img_data ? `<img src="${p.img_data}" alt="${p.name}" loading="lazy" decoding="async">` : `<div class="p-emoji">${p.emoji||'🧴'}</div>`}
+        ${p.img_data ? `<img src="${p.img_data}" loading="lazy" decoding="async" alt="${p.name}">` : `<div class="p-emoji">${p.emoji||'🧴'}</div>`}
         <div class="p-hover-btns">
           <button class="p-hbtn" onclick="ev(event);addCart('${p.id}')" title="أضفي للسلة" ${p.in_stock===false?'disabled style="opacity:.4;cursor:not-allowed"':''}>🛒</button>
           ${canEdit ? `<button class="p-hbtn del-btn" onclick="ev(event);delProd('${p.id}')">🗑</button>` : ''}
@@ -3316,7 +3379,54 @@ function renderProds(filter = 'all') {
           ${p.in_stock===false ? '📦 اطلب رغم نفاذ الكمية' : '🟢 اطلب عبر واتساب'}
         </a>
       </div>
-    </div>`).join('');
+    </div>`;
+}
+
+// متغير لإلغاء أي render قديم لما يجي render جديد
+let _renderProdsId = 0;
+
+function renderProds(filter = 'all') {
+  let list = filter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === filter);
+  const q = document.getElementById('s-input').value.trim().toLowerCase();
+  if (q) list = list.filter(p => (p.name||'').toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
+
+  const canEdit = currentUser && ['manager','sales'].includes(currentUser.role);
+  const g = document.getElementById('prods-grid');
+
+  if (!list.length) {
+    g.innerHTML = '<p class="no-prods">لا توجد منتجات في هذه الفئة حتى الآن</p>';
+    return;
+  }
+
+  // إلغاء أي render سابق لم ينتهِ بعد
+  _renderProdsId++;
+  const myId = _renderProdsId;
+
+  // الدفعة الأولى (أول 8 منتجات) تظهر فوراً
+  const CHUNK = 8;
+  g.innerHTML = list.slice(0, CHUNK).map(p => _buildProdCardHTML(p, canEdit)).join('');
+
+  if (list.length <= CHUNK) return; // لو المنتجات قليلة خلصنا
+
+  // باقي المنتجات تُضاف على دفعات بدون تجميد الصفحة
+  let idx = CHUNK;
+  function renderNextChunk() {
+    if (myId !== _renderProdsId) return; // render أحدث بدأ — وقّف هذا
+    if (idx >= list.length) return;
+
+    const frag = document.createDocumentFragment();
+    const tmp = document.createElement('div');
+    const end = Math.min(idx + CHUNK, list.length);
+    tmp.innerHTML = list.slice(idx, end).map(p => _buildProdCardHTML(p, canEdit)).join('');
+    while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+    g.appendChild(frag);
+
+    idx = end;
+    if (idx < list.length) {
+      requestAnimationFrame(renderNextChunk);
+    }
+  }
+  requestAnimationFrame(renderNextChunk);
 }
 function ev(e) { e.stopPropagation(); }
 
@@ -3732,7 +3842,7 @@ function renderDetailMiniCard() {
       <!-- Header -->
       <div style="background:linear-gradient(135deg,var(--blk),var(--dark),#4a0e28);padding:14px 18px;display:flex;align-items:center;gap:12px">
         <div style="width:56px;height:56px;border-radius:10px;overflow:hidden;border:2px solid var(--gd);flex-shrink:0;background:var(--pk-pale);display:flex;align-items:center;justify-content:center;font-size:1.8rem">
-          ${p.img_data ? `<img src="${p.img_data}" style="width:100%;height:100%;object-fit:cover">` : (p.emoji||'🧴')}
+          ${p.img_data ? `<img src="${p.img_data}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">` : (p.emoji||'🧴')}
         </div>
         <div style="flex:1">
           <div style="font-size:.65rem;color:var(--gd);letter-spacing:2px;font-weight:700;text-transform:uppercase;margin-bottom:2px">${p.cat||''}</div>
@@ -4232,7 +4342,8 @@ async function checkout() {
     await sbPost('orders', {
       buyer_name: name, buyer_phone: phone,
       buyer_address: document.getElementById('buyer-address').value.trim(),
-      customer_email: currentCustomer ? currentCustomer.email : null,
+      customer_email: currentCustomer ? (currentCustomer.email || null) : null,
+      customer_phone: currentCustomer ? (currentCustomer.phone || null) : null,
       items, total, status: 'new'
     });
     document.getElementById('stat-o').textContent = parseInt(document.getElementById('stat-o').textContent||0) + 1;
@@ -4530,7 +4641,7 @@ async function exportDashboardExcel() {
 async function exportCustomersExcel() {
   try {
     const custs = await sbGet('customers', 'order=created_at.desc');
-    const headers = ['الاسم', 'رقم الهاتف', 'البريد الإلكتروني', 'تاريخ التسجيل'];
+    const headers = ['الاسم', '📱 رقم الموبايل', 'البريد الإلكتروني (اختياري)', 'تاريخ التسجيل'];
     const rows = (custs||[]).map(c => [
       c.name||'—', c.phone||'—', c.email||'—',
       c.created_at ? new Date(c.created_at).toLocaleDateString('ar-EG') : '—'
@@ -4917,12 +5028,14 @@ function swCustTab(tab) {
 }
 
 async function doCustLogin() {
-  const email = document.getElementById('cl-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('cl-pass').value;
-  if (!email || !pass) { toast('⚠️ أدخل الإيميل وكلمة المرور'); return; }
+  const phoneRaw = document.getElementById('cl-phone').value.trim();
+  const pass     = document.getElementById('cl-pass').value;
+  if (!phoneRaw || !pass) { toast('⚠️ أدخل رقم الموبايل وكلمة المرور'); return; }
+  const phone = getFullEgyptPhone(phoneRaw);
+  if (!phone) { toast('⚠️ رقم الموبايل غير صحيح — تأكد أنه 11 رقم يبدأ بـ 01'); return; }
   try {
-    const rows = await sbGet('customers', `email=eq.${encodeURIComponent(email)}&password=eq.${encodeURIComponent(pass)}&select=*`);
-    if (!rows.length) { toast('⚠️ الإيميل أو كلمة المرور غير صحيحة'); return; }
+    const rows = await sbGet('customers', `phone=eq.${encodeURIComponent(phone)}&password=eq.${encodeURIComponent(pass)}&select=*`);
+    if (!rows.length) { toast('⚠️ رقم الموبايل أو كلمة المرور غير صحيحة'); return; }
     currentCustomer = rows[0];
     closeMod('cust-login-modal');
     document.getElementById('cust-btn-lbl').textContent = currentCustomer.name || 'حسابي';
@@ -4932,26 +5045,27 @@ async function doCustLogin() {
 }
 
 async function doCustRegister() {
-  const name  = document.getElementById('cr-name').value.trim();
-  const email = document.getElementById('cr-email').value.trim().toLowerCase();
+  const name     = document.getElementById('cr-name').value.trim();
   const phoneRaw = document.getElementById('cr-phone').value.trim();
-  const pass  = document.getElementById('cr-pass').value;
-  
-  if (!email || !pass || !name) { toast('⚠️ الاسم والإيميل وكلمة المرور مطلوبة'); return; }
+  const email    = document.getElementById('cr-email').value.trim().toLowerCase() || null;
+  const pass     = document.getElementById('cr-pass').value;
+
+  if (!name)     { toast('⚠️ أدخل الاسم'); return; }
+  if (!phoneRaw) { toast('⚠️ رقم الموبايل مطلوب'); return; }
+  if (!pass)     { toast('⚠️ أدخل كلمة المرور'); return; }
   if (pass.length < 6) { toast('⚠️ كلمة المرور 6 أحرف على الأقل'); return; }
-  
-  // معالجة رقم الهاتف إذا تم إدخاله
-  let phone = null;
-  if (phoneRaw) {
-    phone = getFullEgyptPhone(phoneRaw);
-    if (!phone) {
-      toast('⚠️ رقم الهاتف غير صحيح');
-      return;
-    }
-  }
-  
+
+  const phone = getFullEgyptPhone(phoneRaw);
+  if (!phone) { toast('⚠️ رقم الموبايل غير صحيح — 11 رقم يبدأ بـ 01'); return; }
+
+  // تحقق أن الرقم مش مسجّل قبل كده
   try {
-    const res = await sbPost('customers', { name, email, password: pass, phone });
+    const existing = await sbGet('customers', `phone=eq.${encodeURIComponent(phone)}&select=id`);
+    if (existing.length > 0) { toast('⚠️ رقم الموبايل ده مسجّل بالفعل — سجّل الدخول'); return; }
+  } catch(e) {}
+
+  try {
+    const res = await sbPost('customers', { name, phone, email, password: pass });
     if (!res || !res[0]) throw new Error('لم يتم إرجاع بيانات من السيرفر');
     currentCustomer = res[0];
     closeMod('cust-login-modal');
@@ -4961,8 +5075,8 @@ async function doCustRegister() {
   } catch(e) {
     console.error('Register error:', e);
     const msg = e.message || '';
-    if (msg.includes('unique') || msg.includes('duplicate')) toast('⚠️ هذا الإيميل مسجّل بالفعل');
-    else if (msg.includes('customers') || msg.includes('relation') || msg.includes('does not exist')) toast('⚠️ جدول العملاء غير موجود — تأكد من إعداد قاعدة البيانات');
+    if (msg.includes('unique') || msg.includes('duplicate')) toast('⚠️ رقم الموبايل مسجّل بالفعل');
+    else if (msg.includes('customers') || msg.includes('does not exist')) toast('⚠️ جدول العملاء غير موجود — تأكد من إعداد قاعدة البيانات');
     else if (msg.includes('permission') || msg.includes('policy') || msg.includes('RLS')) toast('⚠️ خطأ في صلاحيات قاعدة البيانات');
     else toast('⚠️ خطأ في إنشاء الحساب: ' + msg.slice(0, 80));
   }
@@ -4971,12 +5085,16 @@ async function doCustRegister() {
 async function showCustOrders() {
   const panel = document.getElementById('cust-panel');
   const body  = document.getElementById('cust-body');
-  document.getElementById('cust-head-title').textContent = `🌸 حسابي — ${currentCustomer.name||currentCustomer.email}`;
+  document.getElementById('cust-head-title').textContent = `🌸 حسابي — ${currentCustomer.name || currentCustomer.phone || currentCustomer.email || ''}`;
   panel.classList.add('open');
   pushModalState('cust-panel');
   body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">⏳ جارٍ التحميل...</div>';
   try {
-    const orders = await sbGet('orders', `customer_email=eq.${encodeURIComponent(currentCustomer.email)}&order=created_at.desc`);
+    // البحث بالموبايل أولاً، لو مش موجود نجرب الإيميل
+    const phoneQ = currentCustomer.phone ? `customer_phone=eq.${encodeURIComponent(currentCustomer.phone)}` : null;
+    const emailQ = currentCustomer.email ? `customer_email=eq.${encodeURIComponent(currentCustomer.email)}` : null;
+    const ordersQuery = phoneQ || emailQ || 'id=eq.-1';
+    const orders = await sbGet('orders', `${ordersQuery}&order=created_at.desc`);
     if (!orders.length) {
       body.innerHTML = `<div style="text-align:center;padding:40px">
         <div style="font-size:3rem;margin-bottom:12px">🛍</div>
@@ -5275,7 +5393,7 @@ function pcSearch() {
   resBox.innerHTML = matches.map(p => {
     const qty = p.stock_qty ?? 0;
     const qtyBadge = qty === 0 ? '❌ نفد' : qty <= 3 ? `⚠️ ${qty}` : `✅ ${qty}`;
-    const img = p.img_data ? `<img src="${p.img_data}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0">` : `<span style="font-size:1.5rem;flex-shrink:0">${p.emoji||'🧴'}</span>`;
+    const img = p.img_data ? `<img src="${p.img_data}" loading="lazy" decoding="async" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0">` : `<span style="font-size:1.5rem;flex-shrink:0">${p.emoji||'🧴'}</span>`;
     return `<div class="pc-search-result-item" onclick="pcSelectProduct('${p.id}')">
       ${img}
       <div style="flex:1">
@@ -5315,7 +5433,7 @@ async function pcSelectProduct(id) {
 
   // Image
   const imgWrap = document.getElementById('pc-img-wrap');
-  imgWrap.innerHTML = p.img_data ? `<img src="${p.img_data}" style="width:100%;height:100%;object-fit:cover">` : p.emoji || '🧴';
+  imgWrap.innerHTML = p.img_data ? `<img src="${p.img_data}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">` : p.emoji || '🧴';
 
   // Header
   document.getElementById('pc-cat-lbl').textContent = catMap[p.cat] || p.cat;
@@ -5429,7 +5547,7 @@ function exportProductCardPDF() {
   const statRev    = document.getElementById('pc-stat-revenue').textContent;
   const statProfit = document.getElementById('pc-stat-profit-total').textContent;
   const notesHTML  = document.getElementById('pc-customer-notes').innerHTML;
-  const imgTag = p.img_data ? `<img src="${p.img_data}" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:2px solid #d4a017">` : `<div style="width:120px;height:120px;border-radius:12px;background:#fde8f1;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:2px solid #ecd4e0">${p.emoji||'🧴'}</div>`;
+  const imgTag = p.img_data ? `<img src="${p.img_data}" loading="lazy" decoding="async" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:2px solid #d4a017">` : `<div style="width:120px;height:120px;border-radius:12px;background:#fde8f1;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:2px solid #ecd4e0">${p.emoji||'🧴'}</div>`;
 
   const html = `<!DOCTYPE html><html lang="ar" dir="rtl">
 <head><meta charset="UTF-8">
@@ -7686,10 +7804,16 @@ async function loadTreasury() {
     if (currentTrFilter === 'sales') query = 'type=eq.sales_income&' + query;
     else if (currentTrFilter === 'purchases') query = 'type=eq.purchase_expense&' + query;
     else if (currentTrFilter === 'expenses') query = 'type=eq.expense&' + query;
-    const list = await sbGet('treasury', query);
 
-    // حساب الملخص
-    const allItems = await sbGet('treasury', 'select=type,amount');
+    // جيب القائمة وملخص الكل في نفس الوقت
+    const [list, allItems, salesInvDataRaw] = await Promise.all([
+      sbGet('treasury', query),
+      sbGet('treasury', 'select=type,amount'),
+      sbGet('sales_invoices', 'select=inv_number,profit,items,total,subtotal,discount_total')
+    ]);
+
+    // دمج salesInvData مع النتيجة — نحذف الطلب القديم من الأسفل
+    const __salesInvData_preloaded = salesInvDataRaw;
     let totalSales = 0, totalPurchases = 0, totalExpenses = 0;
     allItems.forEach(item => {
       const amt = parseFloat(item.amount) || 0;
@@ -7703,28 +7827,53 @@ async function loadTreasury() {
     // جلب بيانات الأرباح من فواتير البيع (profit + items cost)
     let salesInvMap = {};
     try {
-      const salesInvData = await sbGet('sales_invoices', 'select=inv_number,profit,items,total,subtotal');
+      const salesInvData = __salesInvData_preloaded;
       salesInvData.forEach(si => {
         // احسب تكلفة الفاتورة من المنتجات
         let invoiceCost = 0;
+        let hasAnyItemCost = false;
         try {
           const items = JSON.parse(si.items || '[]');
           items.forEach(item => {
-            const prod = PRODUCTS.find(p => p.name === (item.name || item.product_name) ||
-                         String(p.id) === String(item.prodId || item.product_id));
-            if (prod && prod.cost) invoiceCost += (parseFloat(prod.cost) || 0) * (item.qty || 1);
+            const qty = parseFloat(item.qty) || 1;
+            // أولاً: التكلفة المحفوظة في صف الفاتورة نفسه
+            if (item.cost && parseFloat(item.cost) > 0) {
+              invoiceCost += parseFloat(item.cost) * qty;
+              hasAnyItemCost = true;
+            } else {
+              // ثانياً: من PRODUCTS بالـ id أو الاسم
+              const pid = item.prodId || item.product_id;
+              const prod = (pid && PRODUCTS.find(p => String(p.id) === String(pid)))
+                        || PRODUCTS.find(p => p.name === (item.name || item.product_name));
+              if (prod && prod.cost && parseFloat(prod.cost) > 0) {
+                invoiceCost += parseFloat(prod.cost) * qty;
+                hasAnyItemCost = true;
+              }
+            }
           });
         } catch(e) {}
         const revenue = parseFloat(si.total || si.subtotal || 0);
-        // الربح = المحفوظ في الفاتورة أو محسوب من التكلفة
-        const profit = si.profit != null ? parseFloat(si.profit) :
-                       (invoiceCost > 0 ? revenue - invoiceCost : null);
-        salesInvMap[si.inv_number] = { profit, cost: invoiceCost, revenue };
+        // الربح = المحفوظ في الفاتورة → أو محسوب من التكلفة الآن
+        let profit = null;
+        if (si.profit != null && si.profit !== '') {
+          profit = parseFloat(si.profit);
+        } else if (hasAnyItemCost) {
+          profit = revenue - invoiceCost;
+        }
+        salesInvMap[si.inv_number] = { profit, cost: invoiceCost, revenue, hasAnyItemCost };
       });
     } catch(e) { console.warn('Could not fetch sales invoices for profit:', e); }
 
     // عرض الملخص
     const summaryEl = document.getElementById('treasury-summary');
+    // حساب إجمالي الأرباح من الفواتير
+    let totalInvProfit = 0, totalInvCost = 0, invProfitCount = 0;
+    Object.values(salesInvMap).forEach(inv => {
+      if (inv.profit != null) { totalInvProfit += inv.profit; invProfitCount++; }
+      if (inv.cost) totalInvCost += inv.cost;
+    });
+    const avgMargin = totalSales > 0 ? ((totalInvProfit / totalSales) * 100).toFixed(1) : '0.0';
+
     if (summaryEl) {
       summaryEl.innerHTML = `
         <div style="background:#d4edda;border-radius:14px;padding:16px;border:2px solid #27ae60">
@@ -7740,9 +7889,20 @@ async function loadTreasury() {
           <div style="font-size:1.3rem;font-weight:800;color:#856404">${totalExpenses.toFixed(2)} ج.م</div>
         </div>
         <div style="background:${netProfit>=0?'#d4edda':'#f8d7da'};border-radius:14px;padding:16px;border:2px solid ${netProfit>=0?'#27ae60':'#e74c3c'}">
-          <div style="font-size:.72rem;color:${netProfit>=0?'#155724':'#721c24'};font-weight:700;margin-bottom:4px">💰 صافي الربح</div>
+          <div style="font-size:.72rem;color:${netProfit>=0?'#155724':'#721c24'};font-weight:700;margin-bottom:4px">💰 صافي الربح (خزينة)</div>
           <div style="font-size:1.3rem;font-weight:800;color:${netProfit>=0?'#155724':'#721c24'}">${netProfit.toFixed(2)} ج.م</div>
-        </div>`;
+        </div>
+        ${invProfitCount > 0 ? `
+        <div style="background:linear-gradient(135deg,#f3f0ff,#ede8ff);border-radius:14px;padding:16px;border:2px solid #9b8ecf">
+          <div style="font-size:.72rem;color:#5a3d8a;font-weight:700;margin-bottom:4px">📈 إجمالي ربح الفواتير</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#5a3d8a">${totalInvProfit.toFixed(2)} ج.م</div>
+          <div style="font-size:.68rem;color:#7a5aaa;margin-top:3px">هامش ${avgMargin}% — من ${invProfitCount} فاتورة</div>
+        </div>
+        <div style="background:#fff9e6;border-radius:14px;padding:16px;border:2px solid #d4a017">
+          <div style="font-size:.72rem;color:#856404;font-weight:700;margin-bottom:4px">🏷 إجمالي تكلفة المباع</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#856404">${totalInvCost.toFixed(2)} ج.م</div>
+        </div>` : ''}
+      `;
     }
 
     if (!list.length) { el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">لا توجد حركات بعد</p>'; return; }
@@ -7759,21 +7919,26 @@ async function loadTreasury() {
       if (tr.type === 'sales_income' && tr.ref_id) {
         const invData = salesInvMap[tr.ref_id];
         if (invData && invData.profit != null) {
-          const profit = invData.profit;
-          const pct = revenue > 0 ? ((profit / revenue) * 100).toFixed(0) : 0;
-          const pColor = profit >= 0 ? '#155724' : '#721c24';
-          const pBg    = profit >= 0 ? '#d4edda'  : '#f8d7da';
-          profitBadge = `<span style="font-size:.72rem;background:${pBg};color:${pColor};border-radius:8px;padding:2px 9px;font-weight:700;border:1px solid ${profit>=0?'#b8ddc8':'#f5c6cb'}">
-            📈 ربح: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)} ج.م <span style="opacity:.7">(${pct}%)</span>
-          </span>`;
-        } else if (invData && invData.cost > 0) {
-          const calcProfit = revenue - invData.cost;
-          const pct = revenue > 0 ? ((calcProfit / revenue) * 100).toFixed(0) : 0;
-          const pColor = calcProfit >= 0 ? '#155724' : '#721c24';
-          const pBg    = calcProfit >= 0 ? '#d4edda'  : '#f8d7da';
-          profitBadge = `<span style="font-size:.72rem;background:${pBg};color:${pColor};border-radius:8px;padding:2px 9px;font-weight:700;border:1px solid ${calcProfit>=0?'#b8ddc8':'#f5c6cb'}">
-            📈 ربح: ${calcProfit >= 0 ? '+' : ''}${calcProfit.toFixed(2)} ج.م <span style="opacity:.7">(${pct}%)</span>
-          </span>`;
+          const profit  = invData.profit;
+          const cost    = invData.cost || 0;
+          const pct     = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0.0';
+          const margin  = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0.0';
+          const isPos   = profit >= 0;
+          const pColor  = isPos ? '#155724' : '#721c24';
+          const pBg     = isPos ? '#d4edda' : '#f8d7da';
+          const pBorder = isPos ? '#b8ddc8' : '#f5c6cb';
+          profitBadge = `
+            <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="font-size:.72rem;background:${pBg};color:${pColor};border-radius:8px;padding:3px 10px;font-weight:700;border:1px solid ${pBorder};white-space:nowrap">
+                📈 صافي الربح: ${isPos?'+':''}${profit.toFixed(2)} ج.م
+                <span style="opacity:.75;font-weight:600"> (${margin}%)</span>
+              </span>
+              ${cost > 0 ? `<span style="font-size:.7rem;background:#f3f0ff;color:#5a3d8a;border-radius:8px;padding:2px 8px;border:1px solid #d8caff;white-space:nowrap">
+                🏷 تكلفة: ${cost.toFixed(2)} ج.م
+              </span>` : '<span style="font-size:.7rem;color:var(--muted)">⚠️ لا توجد تكلفة مسجلة</span>'}
+            </span>`;
+        } else if (invData) {
+          profitBadge = `<span style="font-size:.7rem;color:var(--muted);font-style:italic">⚠️ لا توجد تكلفة — أضف سعر شراء للمنتجات</span>`;
         }
       }
 
@@ -8272,8 +8437,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
-
-window.addEventListener('DOMContentLoaded', init);
 
 // ══════════════════════════════════════
 // MOBILE BACK BUTTON — إصلاح زر الرجوع على الموبايل
