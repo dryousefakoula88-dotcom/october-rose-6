@@ -28,18 +28,7 @@ a{text-decoration:none;color:inherit;}
   *{animation-duration:.01ms!important;transition-duration:.01ms!important;}
 }
 
-/* Smooth backdrop fade for all overlays */
-.d-ov, .m-ov, .orders-panel, .cust-panel {
-  transition: background .25s ease;
-}
-/* Overlay backdrop: fade in */
-.d-ov.open, .m-ov.open, .orders-panel.open, .cust-panel.open {
-  animation: backdropIn .22s ease forwards;
-}
-@keyframes backdropIn {
-  from { background: rgba(0,0,0,0); }
-  to   { background: rgba(10,4,7,.88); }
-}
+/* Smooth backdrop fade for all overlays — handled via JS style transitions */
 /* popIn — smoother spring feel */
 @keyframes popIn {
   0%  { transform: scale(.88) translateY(18px); opacity: 0; }
@@ -92,20 +81,11 @@ a{text-decoration:none;color:inherit;}
   100% { background-position: 400px 0; }
 }
 
-/* ── PRODUCT CARD: appears with staggered fade ── */
+/* ── PRODUCT CARD: appears with fade — stagger done via JS inline style ── */
 .prod-card {
-  animation: fadeInUp .35s ease both;
+  animation: fadeInUp .38s ease both;
 }
-/* Stagger via nth-child up to 16 cards */
-.prod-card:nth-child(1){animation-delay:.03s}
-.prod-card:nth-child(2){animation-delay:.06s}
-.prod-card:nth-child(3){animation-delay:.09s}
-.prod-card:nth-child(4){animation-delay:.12s}
-.prod-card:nth-child(5){animation-delay:.15s}
-.prod-card:nth-child(6){animation-delay:.18s}
-.prod-card:nth-child(7){animation-delay:.21s}
-.prod-card:nth-child(8){animation-delay:.24s}
-.prod-card:nth-child(n+9){animation-delay:0s} /* no delay for chunked-in cards */
+/* Cards after chunk boundary get no delay (set by JS) */
 
 /* ── RIPPLE on buttons ── */
 .ripple-host { position: relative; overflow: hidden; }
@@ -269,7 +249,7 @@ header{background:var(--dark);padding:0 24px;height:68px;display:flex;align-item
 .prods-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;}
 
 /* PRODUCT CARD */
-.prod-card{background:#fff;border-radius:14px;overflow:hidden;transition:transform .25s,box-shadow .25s;box-shadow:var(--shadow);cursor:pointer;position:relative;contain:layout style;-webkit-tap-highlight-color:transparent;}
+.prod-card{background:#fff;border-radius:14px;overflow:hidden;transition:transform .25s,box-shadow .25s;box-shadow:var(--shadow);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent;}
 .prod-card:hover{transform:translateY(-5px);box-shadow:var(--shadow2);}
 .prod-card:active{transform:scale(.98);}
 .p-badge{position:absolute;top:9px;right:9px;padding:3px 9px;border-radius:14px;font-size:.67rem;font-weight:700;z-index:2;}
@@ -302,6 +282,101 @@ body.staff-sales .p-hbtn.del-btn,body.manager .p-hbtn.del-btn{display:flex;}
 .p-wa-btn:hover{background:#1ebe5d;transform:scale(1.02);color:#fff;}
 .p-wa-btn svg{width:15px;height:15px;flex-shrink:0;}
 .no-prods{grid-column:1/-1;text-align:center;padding:50px;color:var(--muted);}
+
+/* ══ PRODUCT FILTER BAR ══ */
+.pf-bar{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:18px;flex-wrap:wrap;
+  background:#fff;border-radius:14px;
+  padding:10px 14px;
+  box-shadow:0 2px 12px rgba(232,77,138,.09);
+  border:1.5px solid var(--border);
+  animation:fadeInUp .3s ease;
+}
+/* Search */
+.pf-search-wrap{
+  flex:1;min-width:180px;
+  position:relative;display:flex;align-items:center;
+}
+.pf-search-ico{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  color:var(--pk);width:16px;height:16px;flex-shrink:0;pointer-events:none;
+}
+.pf-search-ico svg{width:16px;height:16px;}
+.pf-search-inp{
+  width:100%;border:1.5px solid var(--border);border-radius:24px;
+  padding:7px 36px 7px 36px;font-size:.84rem;
+  outline:none;font-family:'Tajawal',sans-serif;
+  color:var(--deep);background:var(--cream);
+  transition:border-color .2s,background .2s;
+}
+.pf-search-inp:focus{border-color:var(--pk);background:#fff;}
+.pf-clear-btn{
+  position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  width:18px;height:18px;padding:0;display:flex;align-items:center;justify-content:center;
+  transition:color .2s;
+}
+.pf-clear-btn:hover{color:var(--pk);}
+.pf-clear-btn svg{width:14px;height:14px;}
+/* Sort */
+.pf-sort-wrap{
+  position:relative;display:flex;align-items:center;
+  border:1.5px solid var(--border);border-radius:24px;
+  background:var(--cream);overflow:hidden;
+  transition:border-color .2s;
+}
+.pf-sort-wrap:focus-within{border-color:var(--pk);}
+.pf-sort-ico{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  color:var(--pk);pointer-events:none;
+}
+.pf-sort-ico svg{width:15px;height:15px;}
+.pf-sort-sel{
+  border:none;background:transparent;outline:none;
+  padding:7px 34px 7px 14px;font-size:.82rem;
+  font-family:'Tajawal',sans-serif;color:var(--deep);
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  min-width:148px;
+}
+/* In-Stock Button */
+.pf-stock-btn{
+  display:flex;align-items:center;gap:6px;
+  border:1.5px solid var(--border);border-radius:24px;
+  background:var(--cream);padding:7px 14px;
+  font-size:.82rem;font-family:'Tajawal',sans-serif;
+  color:var(--muted);cursor:pointer;
+  transition:all .22s;white-space:nowrap;
+  position:relative;
+}
+.pf-stock-btn:hover{border-color:var(--pk);color:var(--pk);}
+.pf-stock-btn.active{
+  background:linear-gradient(135deg,#e8f8f0,#d4edda);
+  border-color:#27ae60;color:#155724;
+}
+.pf-stock-ico svg{width:15px;height:15px;}
+.pf-stock-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#ccc;transition:background .22s;flex-shrink:0;
+}
+.pf-stock-btn.active .pf-stock-dot{background:#27ae60;box-shadow:0 0 0 2px rgba(39,174,96,.25);}
+/* Results count */
+.pf-count{
+  font-size:.78rem;color:var(--muted);white-space:nowrap;
+  background:var(--pk-pale);border:1px solid var(--border);
+  border-radius:20px;padding:3px 11px;font-weight:600;
+  display:none;
+}
+.pf-count.show{display:inline-block;}
+/* Mobile */
+@media(max-width:600px){
+  .pf-bar{gap:8px;padding:9px 10px;}
+  .pf-search-wrap{min-width:100%;order:1;}
+  .pf-sort-wrap{flex:1;order:2;}
+  .pf-stock-btn{order:3;}
+  .pf-count{order:4;width:100%;text-align:center;}
+  .pf-sort-sel{min-width:120px;font-size:.78rem;}
+}
 
 /* ── SKU / PRODUCT CODE ── */
 .p-sku{font-size:.62rem;color:var(--muted);background:var(--gd-pale);border:1px solid var(--gd);border-radius:8px;padding:1px 7px;display:inline-block;margin-bottom:4px;font-weight:700;letter-spacing:.5px;}
@@ -372,7 +447,6 @@ body.staff-sales .staff-only,body.manager .staff-only,body.asst-manager .staff-o
   box-shadow:0 40px 100px rgba(0,0,0,.6);
   animation:popIn .38s cubic-bezier(.34,1.35,.64,1);
   overflow:hidden;
-  will-change:transform,opacity;
 }
 .d-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--dark);gap:10px;flex-wrap:wrap;}
 .d-close-btn2{background:rgba(255,255,255,.1);color:#c4a0b4;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;font-size:.8rem;cursor:pointer;transition:.2s;}
@@ -479,7 +553,7 @@ body:not(.manager):not(.staff-orders):not(.staff-sales):not(.asst-manager) .d-ad
   background:var(--cream);border-radius:20px;width:100%;max-width:680px;margin:auto;
   box-shadow:0 40px 100px rgba(0,0,0,.6);
   animation:popIn .35s cubic-bezier(.34,1.35,.64,1);
-  overflow:hidden;will-change:transform,opacity;
+  overflow:hidden;
 }
 .cust-head{background:var(--dark);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
 .cust-head h3{color:var(--gd);font-size:1.1rem;font-weight:700;}
@@ -567,7 +641,7 @@ body:not(.manager):not(.staff-orders):not(.staff-sales):not(.asst-manager) .d-ad
   background:#fff;border-radius:20px;width:100%;max-width:900px;margin:auto;
   box-shadow:0 40px 100px rgba(0,0,0,.5);
   animation:popIn .35s cubic-bezier(.34,1.35,.64,1);
-  overflow:hidden;will-change:transform,opacity;
+  overflow:hidden;
 }
 .orders-head{background:var(--dark);color:var(--gd);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;}
 .orders-head h3{font-family:'Playfair Display',serif;font-size:1.2rem;}
@@ -749,7 +823,6 @@ body.manager .manager-del-order{display:inline-block;}
   width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
   box-shadow:0 28px 70px rgba(0,0,0,.4);
   animation:popIn .32s cubic-bezier(.34,1.4,.64,1);
-  will-change:transform,opacity;
 }
 .m-ov.closing .m-box { animation:popOut .2s ease forwards; }
 .m-box h3{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--deep);margin-bottom:20px;}
@@ -1364,6 +1437,54 @@ button,.nlink,.cat-card,.prod-card,.hdr-btn,.p-add{
     </div>
     <button class="staff-only btn-pk" style="padding:7px 16px;font-size:.8rem;border-radius:24px;align-items:center;gap:6px" onclick="openAddProd()">+ إضافة منتج</button>
   </div>
+
+  <!-- ✦ FILTER BAR ✦ -->
+  <div class="pf-bar" id="pf-bar">
+    <!-- Search -->
+    <div class="pf-search-wrap">
+      <span class="pf-search-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </span>
+      <input class="pf-search-inp" id="pf-search-inp" type="text" placeholder="ابحث عن منتج بالاسم أو الكود..." oninput="pfSearch()" autocomplete="off" dir="rtl">
+      <button class="pf-clear-btn" id="pf-clear-btn" onclick="pfClear()" title="مسح البحث" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Sort -->
+    <div class="pf-sort-wrap">
+      <span class="pf-sort-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/>
+        </svg>
+      </span>
+      <select class="pf-sort-sel" id="pf-sort-sel" onchange="pfSort()" dir="rtl">
+        <option value="default">الترتيب الافتراضي</option>
+        <option value="price_asc">السعر: من الأقل</option>
+        <option value="price_desc">السعر: من الأعلى</option>
+        <option value="name_az">الاسم: أ → ي</option>
+        <option value="new">الأحدث أولاً</option>
+      </select>
+    </div>
+
+    <!-- In-Stock Toggle -->
+    <button class="pf-stock-btn" id="pf-stock-btn" onclick="pfToggleStock()" title="عرض المتاح فقط">
+      <span class="pf-stock-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+      </span>
+      <span class="pf-stock-lbl">المتاح فقط</span>
+      <span class="pf-stock-dot" id="pf-stock-dot"></span>
+    </button>
+
+    <!-- Results count -->
+    <span class="pf-count" id="pf-count"></span>
+  </div>
+
   <div class="prods-grid" id="prods-grid"></div>
 </section>
 
@@ -3523,9 +3644,10 @@ function renderCats() {
 function catName(id) { return CATS.find(c => c.id === id)?.name || id; }
 function bdgLabel(b) { return {new:'جديد',sale:'خصم',best:'الأكثر مبيعاً'}[b] || ''; }
 
-function _buildProdCardHTML(p, canEdit) {
+function _buildProdCardHTML(p, canEdit, idx) {
+  const _delay = (typeof idx==='number' && idx<8) ? (idx*0.055)+'s' : '0s';
   return `
-    <div class="prod-card ${p.in_stock===false?'out-of-stock':''}" onclick="openDetail('${p.id}')">
+    <div class="prod-card ${p.in_stock===false?'out-of-stock':''}" onclick="openDetail('${p.id}')" style="animation-delay:${_delay}">
       ${p.badge ? `<span class="p-badge bg-${p.badge}">${bdgLabel(p.badge)}</span>` : ''}
       <span class="stock-tag ${p.in_stock===false?'tag-out':'tag-in'}">${p.in_stock===false?'نفذت الكمية ❌':'متاح ✅'}</span>
       <div class="p-img-wrap">
@@ -3564,8 +3686,23 @@ let _renderProdsId = 0;
 
 function renderProds(filter = 'all') {
   let list = filter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === filter);
-  const q = document.getElementById('s-input').value.trim().toLowerCase();
-  if (q) list = list.filter(p => (p.name||'').toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
+  const totalBeforeFilter = list.length;
+
+  // Also sync old header search input (keep backward compat)
+  const oldQ = document.getElementById('s-input');
+  if (oldQ && oldQ.value.trim()) {
+    // If old search bar has something, push it to pf-search and sync
+    const v = oldQ.value.trim().toLowerCase();
+    if (!_pfQuery && v) {
+      _pfQuery = v;
+      const pfi = document.getElementById('pf-search-inp');
+      if (pfi && !pfi.value) pfi.value = oldQ.value.trim();
+    }
+  }
+
+  // Apply filter bar logic (search + stock + sort)
+  list = _applyPfFilters(list);
+  _pfUpdateCount(totalBeforeFilter, list.length);
 
   const canEdit = currentUser && ['manager','sales'].includes(currentUser.role);
   const g = document.getElementById('prods-grid');
@@ -3581,7 +3718,7 @@ function renderProds(filter = 'all') {
 
   // الدفعة الأولى (أول 8 منتجات) تظهر فوراً
   const CHUNK = 8;
-  g.innerHTML = list.slice(0, CHUNK).map(p => _buildProdCardHTML(p, canEdit)).join('');
+  g.innerHTML = list.slice(0, CHUNK).map((p,i) => _buildProdCardHTML(p, canEdit, i)).join('');
 
   if (list.length <= CHUNK) return; // لو المنتجات قليلة خلصنا
 
@@ -3594,7 +3731,7 @@ function renderProds(filter = 'all') {
     const frag = document.createDocumentFragment();
     const tmp = document.createElement('div');
     const end = Math.min(idx + CHUNK, list.length);
-    tmp.innerHTML = list.slice(idx, end).map(p => _buildProdCardHTML(p, canEdit)).join('');
+    tmp.innerHTML = list.slice(idx, end).map((p,i) => _buildProdCardHTML(p, canEdit, idx+i)).join('');
     while (tmp.firstChild) frag.appendChild(tmp.firstChild);
     g.appendChild(frag);
 
@@ -3637,7 +3774,97 @@ function filterFromCat(f) {
   renderProds(f);
   document.getElementById('prods-sec').scrollIntoView({behavior:'smooth'});
 }
-function doSearch() { renderProds(curFilter); }
+
+// ══════════════════════════════════════
+// ✦ PRODUCT FILTER BAR LOGIC
+// ══════════════════════════════════════
+let _pfStockOnly = false;
+let _pfSort      = 'default';
+let _pfQuery     = '';
+
+function pfSearch() {
+  const inp = document.getElementById('pf-search-inp');
+  _pfQuery = inp ? inp.value.trim().toLowerCase() : '';
+  const clr = document.getElementById('pf-clear-btn');
+  if (clr) clr.style.display = _pfQuery ? 'flex' : 'none';
+  renderProds(curFilter);
+}
+
+function pfClear() {
+  const inp = document.getElementById('pf-search-inp');
+  if (inp) inp.value = '';
+  _pfQuery = '';
+  const clr = document.getElementById('pf-clear-btn');
+  if (clr) clr.style.display = 'none';
+  renderProds(curFilter);
+  if (inp) inp.focus();
+}
+
+function pfSort() {
+  const sel = document.getElementById('pf-sort-sel');
+  _pfSort = sel ? sel.value : 'default';
+  renderProds(curFilter);
+}
+
+function pfToggleStock() {
+  _pfStockOnly = !_pfStockOnly;
+  const btn = document.getElementById('pf-stock-btn');
+  const dot = document.getElementById('pf-stock-dot');
+  if (btn) btn.classList.toggle('active', _pfStockOnly);
+  renderProds(curFilter);
+  if (window.sfxTap) sfxTap();
+}
+
+function _applyPfFilters(list) {
+  // 1. Search by name / sku / description
+  if (_pfQuery) {
+    list = list.filter(p =>
+      (p.name||'').toLowerCase().includes(_pfQuery) ||
+      (p.sku||'').toLowerCase().includes(_pfQuery) ||
+      (p.description||'').toLowerCase().includes(_pfQuery)
+    );
+  }
+  // 2. In-stock only
+  if (_pfStockOnly) {
+    list = list.filter(p => p.in_stock !== false);
+  }
+  // 3. Sort
+  const sorted = [...list];
+  if (_pfSort === 'price_asc') {
+    sorted.sort((a,b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
+  } else if (_pfSort === 'price_desc') {
+    sorted.sort((a,b) => (parseFloat(b.price)||0) - (parseFloat(a.price)||0));
+  } else if (_pfSort === 'name_az') {
+    sorted.sort((a,b) => (a.name||'').localeCompare(b.name||'', 'ar'));
+  } else if (_pfSort === 'new') {
+    sorted.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+  }
+  return sorted;
+}
+
+function _pfUpdateCount(total, filtered) {
+  const el = document.getElementById('pf-count');
+  if (!el) return;
+  const active = _pfQuery || _pfStockOnly || _pfSort !== 'default';
+  if (active) {
+    el.textContent = `${filtered} من ${total} منتج`;
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
+}
+function doSearch() {
+  // Sync old header search → new filter bar then render
+  const oldQ = document.getElementById('s-input');
+  if (oldQ) {
+    _pfQuery = oldQ.value.trim().toLowerCase();
+    const pfi = document.getElementById('pf-search-inp');
+    if (pfi) pfi.value = oldQ.value.trim();
+    const clr = document.getElementById('pf-clear-btn');
+    if (clr) clr.style.display = _pfQuery ? 'flex' : 'none';
+  }
+  renderProds(curFilter);
+}
 function goProds() { document.getElementById('prods-sec').scrollIntoView({behavior:'smooth'}); }
 
 async function delProd(id) {
@@ -8726,229 +8953,290 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ══════════════════════════════════════
-// 🔊 GENTLE SOUND ENGINE — Web Audio API
+// 🔊 GENTLE SOUND ENGINE — Mobile-Safe
+// iOS Safari requires AudioContext inside a user gesture.
+// We create the context on first tap, then resume it each time.
 // ══════════════════════════════════════
 (function() {
   let _ctx = null;
+  let _unlocked = false;
+
+  // ── Unlock on very first touch/click anywhere ──
+  function _unlock() {
+    if (_unlocked) return;
+    try {
+      _ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // Play 0-volume silent buffer to fully unlock on iOS
+      const buf = _ctx.createBuffer(1, 1, 22050);
+      const src = _ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(_ctx.destination);
+      src.start(0);
+      _unlocked = true;
+    } catch(e) {}
+  }
+  // Listen on capture phase so it fires before any handler
+  document.addEventListener('touchstart', _unlock, {once: true, capture: true, passive: true});
+  document.addEventListener('mousedown',  _unlock, {once: true, capture: true, passive: true});
+
   function _ac() {
-    if (!_ctx) {
-      try { _ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    if (!_ctx) return null;
+    if (_ctx.state === 'suspended') {
+      _ctx.resume().catch(() => {});
     }
-    // Resume if suspended (mobile browsers)
-    if (_ctx && _ctx.state === 'suspended') _ctx.resume().catch(()=>{});
     return _ctx;
   }
 
-  function _playTone(freq, type, vol, dur, delay) {
-    const ac = _ac(); if (!ac) return;
-    const t = ac.currentTime + (delay||0);
+  function _tone(freq, type, vol, dur, delay) {
+    const ac = _ac(); if (!ac || !_unlocked) return;
+    const t = ac.currentTime + (delay || 0);
     try {
-      const osc = ac.createOscillator();
+      const osc  = ac.createOscillator();
       const gain = ac.createGain();
-      osc.connect(gain); gain.connect(ac.destination);
+      osc.connect(gain);
+      gain.connect(ac.destination);
       osc.type = type || 'sine';
       osc.frequency.setValueAtTime(freq, t);
-      gain.gain.setValueAtTime(vol||0.10, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + (dur||0.12));
+      gain.gain.setValueAtTime(vol || 0.10, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.13));
       osc.start(t);
-      osc.stop(t + (dur||0.12) + 0.01);
+      osc.stop(t + (dur || 0.13) + 0.02);
     } catch(e) {}
   }
 
-  // 🌸 Open modal — soft ascending chime
+  // 🌸 Open — soft ascending pair
   window.sfxOpen = function() {
-    _playTone(520, 'sine', 0.08, 0.10, 0);
-    _playTone(680, 'sine', 0.06, 0.14, 0.07);
+    _tone(520, 'sine', 0.08, 0.10, 0);
+    _tone(680, 'sine', 0.06, 0.14, 0.07);
   };
-
-  // 🌙 Close — gentle descending
+  // 🌙 Close — gentle descend
   window.sfxClose = function() {
-    _playTone(520, 'sine', 0.07, 0.09, 0);
-    _playTone(380, 'sine', 0.05, 0.12, 0.055);
+    _tone(520, 'sine', 0.07, 0.09, 0);
+    _tone(380, 'sine', 0.05, 0.12, 0.055);
   };
-
-  // 🛒 Add to cart — cheerful 3-note chime
+  // 🛒 Cart — cheerful 3-note
   window.sfxCart = function() {
-    _playTone(660, 'sine', 0.09, 0.09, 0);
-    _playTone(830, 'sine', 0.08, 0.11, 0.065);
-    _playTone(990, 'sine', 0.06, 0.15, 0.13);
+    _tone(660, 'sine', 0.09, 0.09, 0);
+    _tone(830, 'sine', 0.08, 0.11, 0.065);
+    _tone(990, 'sine', 0.06, 0.15, 0.13);
   };
-
-  // ❌ Remove — soft descend
+  // ❌ Remove
   window.sfxRemove = function() {
-    _playTone(440, 'sine', 0.07, 0.09, 0);
-    _playTone(330, 'sine', 0.05, 0.12, 0.06);
+    _tone(440, 'sine', 0.07, 0.09, 0);
+    _tone(330, 'sine', 0.05, 0.12, 0.06);
   };
-
-  // 🖱️ Tap / tab
+  // 🖱️ Tap
   window.sfxTap = function() {
-    _playTone(780, 'sine', 0.05, 0.06, 0);
+    _tone(780, 'sine', 0.05, 0.06, 0);
   };
-
-  // 💾 Save success — warm ascending chord
+  // 💾 Save
   window.sfxSave = function() {
-    _playTone(520, 'sine', 0.08, 0.15, 0);
-    _playTone(660, 'sine', 0.07, 0.15, 0.06);
-    _playTone(780, 'sine', 0.06, 0.20, 0.12);
+    _tone(520, 'sine', 0.08, 0.15, 0);
+    _tone(660, 'sine', 0.07, 0.15, 0.06);
+    _tone(780, 'sine', 0.06, 0.20, 0.12);
   };
-
-  // ⚠️ Error — soft warning pulse
+  // ⚠️ Error
   window.sfxError = function() {
-    _playTone(320, 'triangle', 0.09, 0.12, 0);
-    _playTone(280, 'triangle', 0.07, 0.15, 0.10);
+    _tone(320, 'triangle', 0.09, 0.12, 0);
+    _tone(280, 'triangle', 0.07, 0.15, 0.10);
   };
 })();
 
 // ══════════════════════════════════════
-// 💫 RIPPLE EFFECT ON INTERACTIVE ELEMENTS
+// 💫 RIPPLE EFFECT — touch & pointer
 // ══════════════════════════════════════
-document.addEventListener('pointerdown', function(e) {
-  const btn = e.target.closest(
-    'button, .btn-pk, .btn-gd, .p-add, .btn-add-cart, ' +
-    '.m-save, .m-cancel, .ftab, .cat-card, .hdr-btn, .nlink'
-  );
-  if (!btn) return;
-  if (!btn.classList.contains('ripple-host')) btn.classList.add('ripple-host');
-  const r = btn.getBoundingClientRect();
-  const c = document.createElement('span');
-  c.className = 'ripple-circle';
-  c.style.left = (e.clientX - r.left - 5) + 'px';
-  c.style.top  = (e.clientY - r.top  - 5) + 'px';
-  btn.appendChild(c);
-  c.addEventListener('animationend', () => c.remove(), {once: true});
-}, {passive: true});
+(function() {
+  const SEL = 'button, .btn-pk, .btn-gd, .p-add, .btn-add-cart, .m-save, .m-cancel, .ftab, .cat-card, .hdr-btn, .nlink';
 
-// ══════════════════════════════════════
-// 🔔 CART BADGE POP ANIMATION
-// ══════════════════════════════════════
-const _origAddCart = window.addCart;
-window.addCart = function(id) {
-  _origAddCart && _origAddCart(id);
-  sfxCart();
-  const bdg = document.getElementById('cart-bdg');
-  if (bdg) {
-    bdg.classList.remove('pop');
-    void bdg.offsetWidth;
-    bdg.classList.add('pop');
-    bdg.addEventListener('animationend', () => bdg.classList.remove('pop'), {once: true});
+  function spawnRipple(el, clientX, clientY) {
+    if (!el.classList.contains('ripple-host')) el.classList.add('ripple-host');
+    const r = el.getBoundingClientRect();
+    const c = document.createElement('span');
+    c.className = 'ripple-circle';
+    c.style.left = (clientX - r.left - 5) + 'px';
+    c.style.top  = (clientY - r.top  - 5) + 'px';
+    el.appendChild(c);
+    c.addEventListener('animationend', () => c.remove(), {once: true});
   }
-};
+
+  // Use touchstart on mobile for zero-delay feel
+  document.addEventListener('touchstart', function(e) {
+    const btn = e.target.closest(SEL);
+    if (!btn) return;
+    const t = e.touches[0];
+    spawnRipple(btn, t.clientX, t.clientY);
+  }, {passive: true});
+
+  // Fallback for desktop
+  document.addEventListener('mousedown', function(e) {
+    if (e.pointerType === 'touch') return; // already handled
+    const btn = e.target.closest(SEL);
+    if (!btn) return;
+    spawnRipple(btn, e.clientX, e.clientY);
+  }, {passive: true});
+})();
 
 // ══════════════════════════════════════
-// 🎭 SMOOTH ANIMATED CLOSE FOR ALL OVERLAYS
+// 🔔 CART BADGE POP
 // ══════════════════════════════════════
-function _animatedClose(overlayId, innerSel, closeFn) {
-  const ov = document.getElementById(overlayId);
-  if (!ov) { closeFn && closeFn(); return; }
-  const box = ov.querySelector(innerSel);
-  if (!box) { closeFn && closeFn(); return; }
-  ov.classList.add('closing');
+(function() {
+  const _orig = window.addCart;
+  window.addCart = function(id) {
+    _orig && _orig(id);
+    sfxCart();
+    const bdg = document.getElementById('cart-bdg');
+    if (bdg) {
+      bdg.classList.remove('pop');
+      void bdg.offsetWidth; // force reflow
+      bdg.classList.add('pop');
+      bdg.addEventListener('animationend', () => bdg.classList.remove('pop'), {once: true});
+    }
+  };
+})();
+
+// ══════════════════════════════════════
+// 🎭 ANIMATED CLOSE — universal helper
+// Works by: set display:flex stay (don't toggle yet), run popOut,
+// then after animation call original close which sets display:none
+// ══════════════════════════════════════
+function _animClose(overlayId, innerSel, origFn) {
+  const ov  = document.getElementById(overlayId);
+  const box = ov ? ov.querySelector(innerSel) : null;
+  if (!ov || !box || !ov.classList.contains('open')) {
+    origFn && origFn();
+    return;
+  }
+  // Freeze display so we can animate before hide
   box.style.animation = 'popOut .22s cubic-bezier(.4,0,.6,1) forwards';
-  setTimeout(() => {
-    ov.classList.remove('closing');
+  // Fade out backdrop via opacity trick (display stays flex)
+  ov.style.transition = 'background .22s ease';
+  ov.style.background = 'rgba(0,0,0,0)';
+  setTimeout(function() {
     box.style.animation = '';
-    closeFn && closeFn();
-  }, 210);
+    ov.style.transition = '';
+    ov.style.background = '';
+    origFn && origFn(); // now sets display:none
+  }, 215);
 }
 
-// Wrap closeDetail
-const _origCloseDetail = window.closeDetail;
-window.closeDetail = function() {
-  sfxClose();
-  _animatedClose('d-ov', '.d-box', _origCloseDetail);
-};
+// ── Wrap each close function ──
+(function() {
+  // closeDetail
+  const _o = window.closeDetail;
+  window.closeDetail = function() {
+    sfxClose();
+    _animClose('d-ov', '.d-box', _o);
+  };
+})();
 
-// Wrap closeOrders
-const _origCloseOrders = window.closeOrders;
-window.closeOrders = function() {
-  sfxClose();
-  _animatedClose('orders-panel', '.orders-box', _origCloseOrders);
-};
+(function() {
+  // closeOrders
+  const _o = window.closeOrders;
+  window.closeOrders = function() {
+    sfxClose();
+    _animClose('orders-panel', '.orders-box', _o);
+  };
+})();
 
-// Wrap closeMod
-const _origCloseMod = window.closeMod;
-window.closeMod = function(id) {
-  sfxClose();
-  const ov = document.getElementById(id);
-  if (!ov) return;
-  const box = ov.querySelector('.m-box');
-  if (!box) { _origCloseMod && _origCloseMod(id); return; }
-  ov.classList.add('closing');
-  box.style.animation = 'popOut .2s ease forwards';
-  setTimeout(() => {
-    ov.classList.remove('closing');
-    box.style.animation = '';
-    _origCloseMod && _origCloseMod(id);
-  }, 185);
-};
+(function() {
+  // closeMod — generic modals
+  const _o = window.closeMod;
+  window.closeMod = function(id) {
+    sfxClose();
+    const ov  = document.getElementById(id);
+    const box = ov ? ov.querySelector('.m-box') : null;
+    if (!ov || !box || !ov.classList.contains('open')) { _o && _o(id); return; }
+    box.style.animation = 'popOut .2s ease forwards';
+    ov.style.transition = 'background .2s ease';
+    ov.style.background = 'rgba(0,0,0,0)';
+    setTimeout(function() {
+      box.style.animation = '';
+      ov.style.transition = '';
+      ov.style.background = '';
+      _o && _o(id);
+    }, 190);
+  };
+})();
 
-// Wrap openMod with sound
-const _origOpenMod = window.openMod;
-window.openMod = function(id) {
-  sfxOpen();
-  _origOpenMod && _origOpenMod(id);
-};
+(function() {
+  // closeCustPanel
+  const _o = window.closeCustPanel;
+  window.closeCustPanel = function() {
+    sfxClose();
+    _animClose('cust-panel', '.cust-box', _o);
+  };
+})();
 
-// Wrap closeCart
-const _origCloseCart = window.closeCart;
-window.closeCart = function() {
-  sfxClose();
-  _origCloseCart && _origCloseCart();
-};
+// ── Wrap open functions with sound ──
+(function() {
+  const _o = window.openMod;
+  window.openMod = function(id) {
+    sfxOpen();
+    _o && _o(id);
+    // Backdrop fade-in via rAF trick (display:none → flex then animate)
+    const ov = document.getElementById(id);
+    if (ov) {
+      ov.style.background = 'rgba(0,0,0,0)';
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          ov.style.transition = 'background .25s ease';
+          ov.style.background = 'rgba(0,0,0,.65)';
+          setTimeout(function() { ov.style.transition = ''; ov.style.background = ''; }, 260);
+        });
+      });
+    }
+  };
+})();
 
-// Wrap openCart
-const _origOpenCart = window.openCart;
-window.openCart = function() {
-  sfxOpen();
-  _origOpenCart && _origOpenCart();
-};
+(function() {
+  const _o = window.openCart;
+  window.openCart = function() { sfxOpen(); _o && _o(); };
+})();
 
-// Wrap closeCustPanel
-const _origCloseCustPanel = window.closeCustPanel;
-window.closeCustPanel = function() {
-  sfxClose();
-  _animatedClose('cust-panel', '.cust-box', _origCloseCustPanel);
-};
+(function() {
+  const _o = window.closeCart;
+  window.closeCart = function() { sfxClose(); _o && _o(); };
+})();
 
-// Wrap openDetail
-const _origOpenDetail = window.openDetail;
-window.openDetail = async function(id) {
-  sfxOpen();
-  return _origOpenDetail && _origOpenDetail(id);
-};
+(function() {
+  // openDetail — MUST stay async-compatible
+  const _o = window.openDetail;
+  window.openDetail = async function(id) { sfxOpen(); return _o && _o(id); };
+})();
 
-// Wrap closeDash / openDash
-const _origCloseDash = window.closeDash;
-window.closeDash = function() {
-  sfxClose();
-  _origCloseDash && _origCloseDash();
-};
-const _origOpenDash = window.openDash;
-window.openDash = async function() {
-  sfxOpen();
-  return _origOpenDash && _origOpenDash();
-};
+(function() {
+  const _o = window.openDash;
+  window.openDash = function() { sfxOpen(); return _o && _o(); };
+})();
 
-// Wrap remFromCart
-const _origRemFromCart = window.remFromCart;
-window.remFromCart = function(id) {
-  sfxRemove();
-  _origRemFromCart && _origRemFromCart(id);
-};
+(function() {
+  const _o = window.closeDash;
+  window.closeDash = function() { sfxClose(); _o && _o(); };
+})();
+
+(function() {
+  const _o = window.remFromCart;
+  window.remFromCart = function(id) { sfxRemove(); _o && _o(id); };
+})();
 
 // ══════════════════════════════════════
-// 💛 TOAST: sound based on content
+// 💛 TOAST — smart sound
 // ══════════════════════════════════════
-const _origToast = window.toast;
-window.toast = function(msg, dur) {
-  if (msg && (msg.includes('⚠️') || msg.includes('خطأ'))) sfxError();
-  else if (msg && (msg.includes('✅') || msg.includes('✦') || msg.includes('تم'))) sfxSave();
-  _origToast && _origToast(msg, dur);
-};
+(function() {
+  const _o = window.toast;
+  window.toast = function(msg, dur) {
+    if (msg && (msg.includes('⚠️') || msg.includes('خطأ'))) sfxError();
+    else if (msg && (msg.includes('✅') || msg.includes('✦') || msg.includes('تم'))) sfxSave();
+    _o && _o(msg, dur);
+  };
+})();
 
 // ══════════════════════════════════════
-// 🎯 NAV TABS: sound on tap
+// 🎯 NAV TABS — tap sound
 // ══════════════════════════════════════
+document.addEventListener('touchstart', function(e) {
+  if (e.target.closest('.ftab, .d-tab, .s-tab, .dash-nav-btn, .nlink')) sfxTap();
+}, {passive: true});
 document.addEventListener('click', function(e) {
   if (e.target.closest('.ftab, .d-tab, .s-tab, .dash-nav-btn, .nlink')) sfxTap();
 }, {passive: true});
